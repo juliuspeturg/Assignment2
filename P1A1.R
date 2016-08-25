@@ -1,11 +1,5 @@
 #fjarlægja breytur úr global umhverfi
 rm(list=ls())
-#Setja working directory
-#setwd('C:/Users/Julius/Desktop/Skóli Haust 2016/tima/Rscripts/Assignment1')
-#setwd('C:/Users/Julius/Desktop/Skóli Haust 2016/tima/Rscripts/Assignment1')
-#loda library´s
-require(ggplot2)
-#require()
 
 #import Data
 library(RCurl)
@@ -22,14 +16,9 @@ fuel_test = fuel[((max_row_training+1):nrow(fuel)),]
 date_sequnce = seq(as.Date("1979/1/1"), as.Date("2004/12/1"), "month")
 
 #tstplot
+require(ggplot2)
 p <- ggplot(data=fuel, aes(x=rtime, y=fpi, group=1)) + 
   geom_line() + xlab("Year") + ylab("Fuel Price Index") + 
   ggtitle("US Fuel Price Index: 1979-2004")
   
 plot(p)
-
-
-
-
-#siggatest
-
