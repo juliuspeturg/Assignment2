@@ -13,7 +13,7 @@ fuel_training = fuel[1:max_row_training,]
 fuel_test = fuel[((max_row_training+1):nrow(fuel)),]
 
 X <- matrix(c(rep(1,nrow(fuel_training)),fuel_training$rtime),nrow=nrow(fuel_training))
-X2 <- matrix(c(rep(1,nrow(fuel_test)),fuel_training$rtime),nrow=nrow(fuel_test))
+X2 <- matrix(c(rep(1,nrow(fuel_test)),fuel_test$rtime),nrow=nrow(fuel_test))
 
 theta <- solve(t(X)%*%X)%*%t(X)%*%fuel_training$fpi
 
