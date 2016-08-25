@@ -5,7 +5,7 @@ rm(list=ls())
 #setwd('C:/Users/Julius/Desktop/Skóli Haust 2016/tima/Rscripts/Assignment1')
 #loda library´s
 require(ggplot2)
-require()
+#require()
 
 #import Data
 fuel = read.csv("fuel.csv", stringsAsFactors = FALSE)
