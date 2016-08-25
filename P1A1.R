@@ -19,7 +19,7 @@ fuel_test = fuel[numrow+1:nrow(fuel)]
 #generate time sequence for google plot 
 seq(as.Date("1979/1/1"), as.Date("2004/12/1"), "month")
 
-
+# Negrar
 
 
 
