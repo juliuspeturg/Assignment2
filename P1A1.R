@@ -26,7 +26,3 @@ fuel$DATE <- date_sequence
 fuel[(nrow(fuel)+1):(2*nrow(fuel)),] <- NA
 fuel$DATE[(nrow(fuel)+1):(2*nrow(fuel))] <- date_sequence
 
-
-  
-  
-plot(p)
