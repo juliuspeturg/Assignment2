@@ -1,15 +1,16 @@
-#fjarlægja breytur úr global umhverfi
+#fjarlÃ¦gja breytur Ãºr global umhverfi
 rm(list=ls())
 #Setja working directory
-setwd('C:/Users/Julius/Desktop/Skóli Haust 2016/tima/Rscripts/Assignment1')
-#loda library´s
+#setwd('C:/Users/Julius/Desktop/SkÃ³li Haust 2016/tima/Rscripts/Assignment1')
+#setwd('C:/Users/Julius/Desktop/SkÃ³li Haust 2016/tima/Rscripts/Assignment1')
+#loda libraryÂ´s
 require(ggplot2)
 require()
 
 #import Data
 fuel = read.csv("fuel.csv", stringsAsFactors = FALSE)
 fuel.ts = ts(data = fuel$fpi, start = c(1979,1),frequency = 12)
-#finna hæsta gildi í fuel sem er með árið 2013, það er december 2013
+#finna hÃ¦sta gildi Ã­ fuel sem er meÃ° Ã¡riÃ° 2013, Ã¾aÃ° er december 2013
 max_row_training = max(which(fuel$year==2003))
 
 fuel_training = fuel[1:numrow,]
