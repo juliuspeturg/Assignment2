@@ -24,6 +24,9 @@ cat(yhat)
 date_sequence = seq(as.Date("1979/1/1"), as.Date("2004/12/1"), "month")
 fuel$DATE <- date_sequence
 fuel$yhat <- NA
+fuel$index <- NA
+fuel$index[(1:max_row_training)] <- 'y'
+fuel$index[(max_row_training+1):nrow(fuel)] <- 'yhat'
 fuel$yhat[(1:max_row_training)] <-fuel$fpi[(1:max_row_training)]
 fuel$yhat[(max_row_training+1):nrow(fuel)] <- yhat
 
