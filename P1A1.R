@@ -31,6 +31,7 @@ fuel$index <- NA
 fuel$index[1:(which.min(!is.na(fuel$rtime))-1)] <- 'y'
 fuel$index[(which.min(!is.na(fuel$rtime)):nrow(fuel))] <- 'yhat'
 
+require(googlevis)
 A <- gvisAnnotationChart(fuel,datevar = 'DATE',numvar = 'fpi',idvar = 'index',date.format = "YY-MM-dd")
 A$html$footer <- NULL
 A$html$jsFooter <- NULL
