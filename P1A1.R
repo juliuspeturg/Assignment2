@@ -8,7 +8,9 @@ require(ggplot2)
 #require()
 
 #import Data
-fuel = read.csv("fuel.csv", stringsAsFactors = FALSE)
+library(RCurl)
+x = getURL("https://raw.githubusercontent.com/juliuspeturg/Assignment1/master/fuel.csv")
+fuel = read.csv(x,stringsAsFactors = FALSE)
 fuel.ts = ts(data = fuel$fpi, start = c(1979,1),frequency = 12)
 #finna hæsta gildi í fuel sem er með árið 2013, það er december 2013
 max_row_training = max(which(fuel$year==2003))
