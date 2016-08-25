@@ -18,7 +18,7 @@ X2 <- matrix(c(rep(1,nrow(fuel_test)),fuel_training$rtime),nrow=nrow(fuel_test))
 theta <- solve(t(X)%*%X)%*%t(X)%*%fuel_training$fpi
 
 yhat <- X2%*%theta
-yhat
+cat(yhat)
 
 #generate time sequence for google plot 
 date_sequnce = seq(as.Date("1979/1/1"), as.Date("2004/12/1"), "month")
