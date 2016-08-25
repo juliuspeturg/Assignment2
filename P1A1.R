@@ -21,4 +21,5 @@ p <- ggplot(data=fuel, aes(x=rtime, y=fpi, group=1)) +
   geom_line() + xlab("Year") + ylab("Fuel Price Index") + 
   ggtitle("US Fuel Price Index: 1979-2004")
   
+  
 plot(p)
