@@ -24,10 +24,17 @@ cat(yhat)
 date_sequence = seq(as.Date("1979/1/1"), as.Date("2004/12/1"), "month")
 fuel$DATE <- date_sequence
 fuel[(nrow(fuel)+1):(2*nrow(fuel)),] <- NA
-fuel$DATE[(nrow(fuel)+1):(2*nrow(fuel))] <- date_sequence
+fuel$DATE[(which.min(!is.na(fuel$rtime)):nrow(fuel))] <- date_sequence
 fuel$fpi[(which.min(!is.na(fuel$rtime)):nrow(fuel))] <- yhat
 
 fuel$index <- NA
 fuel$index[1:(which.min(!is.na(fuel$rtime))-1)] <- 'y'
 fuel$index[(which.min(!is.na(fuel$rtime)):nrow(fuel))] <- 'yhat'
+
+A <- gvisAnnotationChart(fuel,datevar = 'DATE',numvar = 'fpi',idvar = 'index',date.format = "YY-MM-dd")
+A$html$footer <- NULL
+A$html$jsFooter <- NULL
+A$html$caption <- NULL
+plot(A)
+B <- A$html$chart
 
