@@ -26,15 +26,53 @@ yhat <- X2%*%theta
 yhat
 
 
+plot(yhat.ts)
+par(new=T)
+plot(fuel.ts)
+
+plot(yhat.ts,type="l",col=2)
+lines(fuel.ts,col=3)
+
 
 # A1-Q4: 
-# ATH stl() function - şurfum ağ breyta fuel$fpi í time series meğ
-# fuel.ts <- ts(fuel$fpi, frequency=12, start=c(1979,1))
+# ATH stl() function - Ã¾urfum aÃ° breyta fuel$fpi Ã­ time series meÃ°
+fuel.ts <- ts(fuel$fpi, frequency=12, start=c(1979,1))
 # og keyra svo fuel.stl <- stl(fuel.ts, s.window="periodic")
-# nota fuel2 = window(fuel.ts, start=c(2000,1), end=c(2004,12)) til ağ skipta upp í tímabil
+# nota fuel2 = window(fuel.ts, start=c(2000,1), end=c(2004,12)) til aÃ° skipta upp Ã­ tÃ­mabil
 
 
 # A1-Q5: Split into test and training
-# > training_set <- window(fuel.ts, start=c(1979,1), end=c(2003,12))
-# > test_set <- window(fuel.ts, start=c(2004,1), end=c(2004,12))
+fuel_training <- window(fuel.ts, start=c(1979,1), end=c(2003,12))
+fuel_test <- window(fuel.ts, start=c(2004,1), end=c(2004,12))
 
+
+
+
+
+# A1-Q7: Simple Exponential Smoothing
+
+lossf <- function(alpha,y,k,d){
+  # use 100 obs to initialize mu
+  mu <- mean(y[1:d])
+  
+  yy <- y[-c(1:d)]
+  eps <- yy[k] - mu
+  for(tt in 1:(length(yy)-k)){
+    mu <- alpha*yy[tt] + (1-alpha)*mu
+    eps <- c(eps,yy[tt+k] - mu)
+  }
+  
+  sum(eps^2)
+}
+
+
+#Initialize alpha
+
+alpha.init <- 0.1
+
+# minimize
+alpha <- optim(alpha.init,lossf,gr=NULL,y=fuel_test,k=20,d=50,method="L-BFGS-B", lower=0,upper=1)
+
+
+# Prediction for 2004
+fuel_predict$Date <- fuel_training$[nrow(fuel_training):fuel_test[nrow(fuel_test)]]
