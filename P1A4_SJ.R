@@ -1,18 +1,20 @@
 # Assignment 4
 
-# URL <- "http://datamarket.com/api/v1/list.csv"
-#gamma <- read.csv(URL)
+rm(list=ls())
 
-gamma <- read.csv("gamma-visitolur.csv", header=TRUE)
+require(RCurl)
+x = getURL("https://raw.githubusercontent.com/juliuspeturg/Assignment1/master/gamma-visitolur.csv")
+gamma <- read.csv(text=x, stringsAsFactors = FALSE, header=TRUE)
+
 gamma$Date <- as.Date(gamma$Date, "%Y-%m-%d")
 gamma <- na.omit(gamma)
-names(gamma)[names(gamma)=="GAMMA.vísitölur"] <- "GAMMA Equity Index"
+names(gamma)[names(gamma)=="GAMMA.v.ed.sit.f6.lur"] <- "GAMMA Equity Index"
 
 
 # A4-Q1: Plot the time series
 
 # require(ggplot2)
-# ggplot(data=gamma, aes(x=gamma$Date, y=gamma$GAMMA.vísitölur, group=1)) + 
+# ggplot(data=gamma, aes(x=gamma$Date, y=gamma$GAMMA.vÃ­sitÃ¶lur, group=1)) + 
 #   geom_line() + xlab("Date") + ylab("Gamma Equity Index") + 
 #   ggtitle("Gamma Equity Index: 2009-2016")
 
@@ -31,10 +33,25 @@ plot(A)
 
 max_row_training = max(which(gamma$Date=="2013-12-31"))
 
-gamma_training <- head(gamma, n=max_row_training)
-gamma_testing <- tail(gamma, n=(nrow(gamma)-max_row_training))
+gamma_train <- head(gamma, n=max_row_training)
+gamma_test <- tail(gamma, n=(nrow(gamma)-max_row_training))
+
+gamma.ts <- ts(gamma$`GAMMA Equity Index`)
+#View(gamma.ts)
+
+#gamma_training = window(gamma.ts, start=c(2008,12,31), end=c(2013,12,31))
 
 
 # A4-Q3: Choose a model and predict 20 steps ahead
 
+# create a time series object
+gamma.ts <- ts(gamma$`GAMMA Equity Index`)
+gamma_train.ts <- ts(gamma_training$`GAMMA Equity Index`)
+gamma_test.ts <- ts(gamma_test$`GAMMA Equity Index`) 
 
+# fit_gamma <- ses(gamma_training$`GAMMA Equity Index`)
+require(forecast)
+fit_gamma <- HoltWinters(gamma_train.ts, beta = FALSE,gamma = FALSE)
+f.fit_gamma <- forecast(fit_gamma, 20)
+plot(f.fit_gamma)
+accuracy(f.fit_gamma)
