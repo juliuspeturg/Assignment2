@@ -1,7 +1,7 @@
 # Importing data:
 
 library(RCurl)
-require(forecast)
+library(forecast)
 x = getURL("https://raw.githubusercontent.com/juliuspeturg/Assignment1/master/simdata.csv")
 simdata = read.csv(text=x,stringsAsFactors = FALSE,header=TRUE, sep="")
 
