@@ -1,75 +1,223 @@
 ---
-title: "Project-1"
+title: "Project 1"
 author: 
-- "Júlíus Pétur Guðjohnsen"
-- "Sigurður Jónsson"
+- "JÃºlÃ­us PÃ©tur GuÃ°johnsen"
+- "SigurÃ°ur JÃ³nsson"
 date: "`r format(Sys.time(), '%d.%m.%Y')`"
 output: html_document
 ---
-
-```{r setOptions, message=FALSE}
-rm(list=ls())
-library(googleVis)
-op <- options(gvis.plot.tag='chart')
-```
-
-
 ### Assignment 1
 #### Question 1
-Hérna má sjá unaðslega kóða skrifaðan af unaðsmönnum
-```{r eval=TRUE, echo=FALSE,message=FALSE}
-#import Data
-library(RCurl)
+
+
+<!-- HÃ©rna er cÃ³Ã°inn fyrir fyrsta liÃ° Ã¡n evaluation -->
+The following code sample shows how to import the data needed for the assignement hosted on a https server "https://raw.githubusercontent.com/juliuspeturg/Assignment1/master/fuel.csv".
+To better understand the data a summary of the imported data is displayed bellow aswell as a lineplot of the fuel price index
+```{r, message=FALSE,echo=TRUE,eval=TRUE}
+#remove all variables af data from global enviroment
+rm(list=ls())
+suppressPackageStartupMessages(library(RCurl))
+# load csv file from URL
 x = getURL("https://raw.githubusercontent.com/juliuspeturg/Assignment1/master/fuel.csv")
 fuel = read.csv(text=x,stringsAsFactors = FALSE)
+summary(fuel)
+attach(fuel)
+par(mfrow=c(1,1))
+plot(fpi~rtime,type = "l",main="Fuel price index in the US")
+grid()
+```
+
+#### Question 2
+For statinary time series the ACF will drop to zero very quickly however for nonstationary time series the ACF will taper off slowly. As we can see by looking at the ACF of the fuel price index the ACF tapers off slowly, from that we can conclude that the timeseries is nonstationary and therefor the mean of the series is not going to informe us a lot on the timeseries, see figure below for ACF of timeseries  
+```{r eval=TRUE, echo=TRUE,message=FALSE}
+#Generate timeseries object for fuelindex
 fuel.ts = ts(data = fuel$fpi, start = c(1979,1),frequency = 12)
+#evaluate the mean of the timeseries
+cat(c("mean_fpi:",mean(fpi)))
+acf(fuel.ts,main="ACF for fuel price index")
+grid()
+```
 
-#finna hæsta gildi í fuel sem er með árið 2013, það er december 2013
-max_row_training = max(which(fuel$year==2003))
+#### Question 3
+
+```{r eval=TRUE, echo=TRUE,message=FALSE}
+# Linear Model
+mod <- lm(fpi~rtime)
+summary(mod)
+```
+
+#### Question 4
+
+```{r eval=TRUE, echo=TRUE,message=FALSE}
+# Trainingset
+myts <- ts(fpi, start = c(1979,1), end =c(2003,12),frequency = 12)
+# Testset
+myts2 <- ts(fpi, start = c(2004,1), end =c(2004,12),frequency = 12)
+require(forecast)
+monthplot(myts)
+seasonplot(myts)
+par(mfrow=c(1,1))
+fit1 <- stl(myts,s.window = "period")
+#3 eÃ°a 4
+plot(fit1)
+```
+
+#### Question 5
+
+```{r eval=TRUE, echo=TRUE,message=FALSE}
+fuel.ts <- ts(fuel$fpi, frequency=12, start=c(1979,1))
+
+fuel_train <- window(fuel.ts, start=c(1979,1), end=c(2003,12))
+fuel_test <- window(fuel.ts, start=c(2004,1), end=c(2004,12))
+
 
 ```
 
-#### Teikna graf
+#### Question 6
 
-Hér að neðan má sjá seiðan graf búið til af nördum hjá google
-
-```{r ComboExample, results='asis', tidy=FALSE}
-#splitta í test og training
-fuel_training = fuel[1:max_row_training,]
-fuel_test = fuel[((max_row_training+1):nrow(fuel)),]
-
-#búa til vigurinn X
-X <- matrix(c(rep(1,nrow(fuel_training)),fuel_training$rtime),nrow=nrow(fuel_training))
-X2 <- matrix(c(rep(1,nrow(fuel)),fuel$rtime),nrow=nrow(fuel))
-
-#leysa fyrir theta
-theta <- solve(t(X)%*%X)%*%t(X)%*%fuel_training$fpi
-
-#Predicta yhat 
-yhat <- X2%*%theta
-#cat(yhat)
-
-#generate time sequence for google plot 
-date_sequence = seq(as.Date("1979/1/1"), as.Date("2004/12/1"), "month")
-fuel$DATE <- date_sequence
-fuel[(nrow(fuel)+1):(2*nrow(fuel)),] <- NA
-fuel$DATE[(which.min(!is.na(fuel$rtime)):nrow(fuel))] <- date_sequence
-fuel$fpi[(which.min(!is.na(fuel$rtime)):nrow(fuel))] <- yhat
-
-fuel$index <- NA
-fuel$index[1:(which.min(!is.na(fuel$rtime))-1)] <- 'y'
-fuel$index[(which.min(!is.na(fuel$rtime)):nrow(fuel))] <- 'yhat'
-#op <- options(gvis.plot.tag='chart')
-#library(googleVis)
+```{r eval=TRUE, echo=TRUE,message=FALSE}
+fit2 <- ses(fuel_train,h = 12, alpha = 0.1,exponential=TRUE)
+f.fit2 <- forecast(fit2,12)
+plot(f.fit2,ylab="fpi",xlab="time")
+lines(fuel_train)
+lines(fuel_test,col=2)
+grid()
 ```
 
-```{r,results='asis', tidy=FALSE,, fig.width = 7, fig.height = 7}
-A <- gvisAnnotationChart(fuel,datevar = 'DATE',numvar = 'fpi',idvar = 'index',date.format = "YY-MM-dd", options=list(width=720, height=400))
-plot(A)  
-```
-Þvílíkt musteri
+#### Question 7
 
-```{r eval=TRUE}
-## Set options back to original options
-options(op)
+```{r eval=TRUE, echo=TRUE,message=FALSE}
+fit3 <- ses(fuel_train,h = 12, exponential=FALSE)
+f.fit3 <- forecast(fit3,12)
+plot(f.fit3,ylab="fpi",xlab="time")
+lines(fuel_train)
+lines(fuel_test,col=2)
+grid()
+```
+
+#### Question 8
+
+```{r eval=TRUE, echo=TRUE,message=FALSE}
+fit4 <- HoltWinters(myts, beta = FALSE,gamma = FALSE)
+f.fit4 <- forecast(fit4,12)
+plot(f.fit4,ylab="fpi",xlab="time")
+lines(fuel_train)
+lines(fuel_test,col=2)
+grid()
+```
+
+#### Question 9
+
+```{r eval=TRUE, echo=TRUE,message=FALSE}
+fit5 <- rwf(myts, h=12, drift=FALSE, fan=FALSE, lambda=NULL, biasadj=FALSE)
+f.fit5 <- forecast(fit5,12)
+plot(f.fit5,ylab="fpi",xlab="time")
+lines(fuel_train)
+lines(fuel_test,col=2)
+grid()
+```
+
+### Assignment 2
+#### Question 1
+
+```{r eval=TRUE, echo=TRUE,message=FALSE}
+library(RCurl)
+x = getURL("https://raw.githubusercontent.com/juliuspeturg/Assignment1/master/simdata.csv")
+simdata = read.csv(text=x,stringsAsFactors = FALSE,header=TRUE, sep="")
+
+# A2-Q1: Plot the data
+
+attach(simdata)
+
+# Ã¡ sama grafi
+plot(y1, type="l",col='red', main="Simdata time series",
+     xlab="Time", ylab="Data")
+lines(y2,col='blue')
+lines(y3,col='green')
+legend('topright', legend=c("y1", "y2","y3"),
+       col=c('red','blue','green'), lty=1, bty='y', cex=.85)
+```
+
+#### Question 2
+
+```{r eval=TRUE, echo=TRUE,message=FALSE}
+par(mfrow=c(3,2)) 
+# par(mfrow=c(1,1)) 
+acf(y1)
+pacf(y1)
+acf(y2)
+pacf(y2)
+acf(y3)
+pacf(y3)
+```
+
+#### Question 3
+
+```{r eval=TRUE, echo=TRUE,message=FALSE}
+# A2-Q3: Identify the models using arima  <<< ATH BETUR
+
+arima(y1)
+arima(y2)
+arima(y3)
+
+auto.arima(y1) # lÃ­ka hÃ¦gt aÃ° nota auto.arima
+```
+
+#### Question 4
+
+```{r eval=TRUE, echo=TRUE,message=FALSE}
+ts.sim <- arima.sim(list(order = c(1,0,0), ar = 0.9), n = 250)
+```
+
+#### Question 5
+
+```{r eval=TRUE, echo=TRUE,message=FALSE}
+layout(matrix(c(1,1,2,3), 2, 2, byrow = TRUE))  
+plot(ts.sim, main="Simulated time series ts.sim")
+acf(ts.sim, main="ACF for ts.sim")
+pacf(ts.sim, main="PACF for ts.sim")
+```
+
+#### Question 6
+
+```{r eval=TRUE, echo=TRUE,message=FALSE}
+acf.plot <- function(y){
+  layout(matrix(c(1,1,2,3), 2, 2, byrow = TRUE)) 
+  plot(y, main=c("Simulated time series",deparse(substitute(y))))
+  acf(y, main=c("ACF for",deparse(substitute(y))))
+  pacf(y,main=c("PACF for",deparse(substitute(y))))
+}
+```
+
+#### Question 7
+
+```{r eval=TRUE, echo=TRUE,message=FALSE}
+ts.sim1 <- arima.sim(n=250, list(ar=c(0.5)))        
+ts.sim2 <- arima.sim(n=250, list(ar=c(-0.5)))
+ts.sim3 <- arima.sim(n=250, list(ar=c(0.5,0.2)))
+ts.sim4 <- arima.sim(n=250, list(ar=c(0.7)))
+ts.sim5 <- arima.sim(n=250, list(ar=c(0.5,-0.2)))
+ts.sim6 <- arima.sim(n=250, list(ma=c(0.5,0.5)))
+ts.sim7 <- arima.sim(n=250, list(ma=c(-0.9)))
+ts.sim8 <- arima.sim(n=250, list(ar=c(0.5), ma=c(-0.8)))
+
+# Plotting the simulated series with the acf function
+acf.plot(ts.sim1)
+acf.plot(ts.sim2)
+acf.plot(ts.sim3)
+acf.plot(ts.sim4)
+acf.plot(ts.sim5)
+acf.plot(ts.sim6)
+acf.plot(ts.sim7)
+acf.plot(ts.sim8)
+```
+
+#### Question 8
+
+```{r eval=TRUE, echo=TRUE,message=FALSE}
+ts.sim9 <- arima.sim(list(order = c(1,1,1), ar = 0.7, ma=0.3), n = 250)
+
+ts.sim9_diff1 <- diff(ts.sim9, differences=1) #first difference
+plot.ts(ts.sim9_diff1, col=3)
+lines(ts.sim9, col=2)
 ```
