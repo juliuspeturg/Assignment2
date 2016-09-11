@@ -1,0 +1,75 @@
+---
+title: "Project-1"
+author: 
+- "Júlíus Pétur Guðjohnsen"
+- "Sigurður Jónsson"
+date: "`r format(Sys.time(), '%d.%m.%Y')`"
+output: html_document
+---
+
+```{r setOptions, message=FALSE}
+rm(list=ls())
+library(googleVis)
+op <- options(gvis.plot.tag='chart')
+```
+
+
+### Assignment 1
+#### Question 1
+Hérna má sjá unaðslega kóða skrifaðan af unaðsmönnum
+```{r eval=TRUE, echo=FALSE,message=FALSE}
+#import Data
+library(RCurl)
+x = getURL("https://raw.githubusercontent.com/juliuspeturg/Assignment1/master/fuel.csv")
+fuel = read.csv(text=x,stringsAsFactors = FALSE)
+fuel.ts = ts(data = fuel$fpi, start = c(1979,1),frequency = 12)
+
+#finna hæsta gildi í fuel sem er með árið 2013, það er december 2013
+max_row_training = max(which(fuel$year==2003))
+
+```
+
+#### Teikna graf
+
+Hér að neðan má sjá seiðan graf búið til af nördum hjá google
+
+```{r ComboExample, results='asis', tidy=FALSE}
+#splitta í test og training
+fuel_training = fuel[1:max_row_training,]
+fuel_test = fuel[((max_row_training+1):nrow(fuel)),]
+
+#búa til vigurinn X
+X <- matrix(c(rep(1,nrow(fuel_training)),fuel_training$rtime),nrow=nrow(fuel_training))
+X2 <- matrix(c(rep(1,nrow(fuel)),fuel$rtime),nrow=nrow(fuel))
+
+#leysa fyrir theta
+theta <- solve(t(X)%*%X)%*%t(X)%*%fuel_training$fpi
+
+#Predicta yhat 
+yhat <- X2%*%theta
+#cat(yhat)
+
+#generate time sequence for google plot 
+date_sequence = seq(as.Date("1979/1/1"), as.Date("2004/12/1"), "month")
+fuel$DATE <- date_sequence
+fuel[(nrow(fuel)+1):(2*nrow(fuel)),] <- NA
+fuel$DATE[(which.min(!is.na(fuel$rtime)):nrow(fuel))] <- date_sequence
+fuel$fpi[(which.min(!is.na(fuel$rtime)):nrow(fuel))] <- yhat
+
+fuel$index <- NA
+fuel$index[1:(which.min(!is.na(fuel$rtime))-1)] <- 'y'
+fuel$index[(which.min(!is.na(fuel$rtime)):nrow(fuel))] <- 'yhat'
+#op <- options(gvis.plot.tag='chart')
+#library(googleVis)
+```
+
+```{r,results='asis', tidy=FALSE,, fig.width = 7, fig.height = 7}
+A <- gvisAnnotationChart(fuel,datevar = 'DATE',numvar = 'fpi',idvar = 'index',date.format = "YY-MM-dd", options=list(width=720, height=400))
+plot(A)  
+```
+Þvílíkt musteri
+
+```{r eval=TRUE}
+## Set options back to original options
+options(op)
+```
