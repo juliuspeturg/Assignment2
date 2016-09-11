@@ -37,7 +37,7 @@ pacf(y2)
 acf(y3)
 pacf(y3)
 
-# A2-Q3: Identify the models using arima
+# A2-Q3: Identify the models using arima  <<< ATH BETUR
 
 arima(y1)
 arima(y2)
@@ -45,10 +45,12 @@ arima(y3)
 
 auto.arima(y1) # líka hægt að nota auto.arima
 
-require(forecast)
-fit1.arima <- arima(y1, order=c(0,1,0))
-summary(fit1.arima)
-plot(forecast(fit1.arima,12))
+### Ekki beðið um þetta að neðan
+
+# require(forecast)
+# fit1.arima <- arima(y1, order=c(1,0,0))
+# summary(fit1.arima)
+# plot(forecast(fit1.arima,12))
 
 # A2-Q4: Simulate a model
 
@@ -100,7 +102,6 @@ acf.plot(ts.sim8)
 # A2-Q8
 
 ts.sim9 <- arima.sim(list(order = c(1,1,1), ar = 0.7, ma=0.3), n = 250)
-
 
 ts.sim9_diff1 <- diff(ts.sim9, differences=1) #first difference
 plot.ts(ts.sim9_diff1, col=3)
