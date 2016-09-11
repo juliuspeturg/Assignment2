@@ -46,7 +46,7 @@ gamma.ts <- ts(gamma$`GAMMA Equity Index`)
 
 # create a time series object
 gamma.ts <- ts(gamma$`GAMMA Equity Index`)
-gamma_train.ts <- ts(gamma_training$`GAMMA Equity Index`)
+gamma_train.ts <- ts(gamma_train$`GAMMA Equity Index`)
 gamma_test.ts <- ts(gamma_test$`GAMMA Equity Index`) 
 
 # fit_gamma <- ses(gamma_training$`GAMMA Equity Index`)
