@@ -5,7 +5,135 @@ author:
 - "Sigurður Jónsson"
 date: "`r format(Sys.time(), '%d.%m.%Y')`"
 output: html_document
+fig_caption: yes
+self_contained: yes
+smart: no
+
 ---
+
+```{r auto_num_functions, echo=FALSE}
+# A function for generating captions and cross-references
+
+fig <- local({
+    i <- 0
+    list(
+        cap=function(refName, text, center=FALSE, col="black", inline=FALSE) {
+            i <<- i + 1
+            ref[[refName]] <<- i
+            css_ctr <- ""
+            if (center) css_ctr <- "text-align:center; display:inline-block; width:100%;"
+            cap_txt <- paste0("<span style=\"color:", col, "; ", css_ctr, "\">Figure ", i, ": ", text , "</span>")
+            anchor <- paste0("<a name=\"", refName, "\"></a>")
+            if (inline) {
+                paste0(anchor, cap_txt)    
+            } else {
+                list(anchor=anchor, cap_txt=cap_txt)
+            }
+        },
+        
+        ref=function(refName, link=FALSE, checkRef=TRUE) {
+            
+            ## This function puts in a cross reference to a caption. You refer to the
+            ## caption with the refName that was passed to fig$cap() (not the code chunk name).
+            ## The cross reference can be hyperlinked.
+            
+            if (checkRef && !refName %in% names(ref)) stop(paste0("fig$ref() error: ", refName, " not found"))
+            if (link) {
+                paste0("<A HREF=\"#", refName, "\">Figure ", ref[[refName]], "</A>")
+            } else {
+                paste0("Figure ", ref[[refName]])
+            }
+        },
+        
+        ref_all=function(){
+            ## For debugging
+            ref
+        })
+})
+
+```
+
+```{r setup, echo=TRUE}
+
+## This chunk replaces the default hook for processing plots. It achieves the purposes,
+## of laying out auto-numbered captions, but other functionality may be gone.
+
+library(knitr)
+knit_hooks$set(plot = function(x, options) {
+    sty <- ""
+    if (options$fig.align == 'default') {
+        sty <- ""
+    } else {
+        sty <- paste0(" style=\"text-align:", options$fig.align, ";\"")
+    }
+    
+    if (is.list(options$fig.cap)) {
+        ## options$fig.cap is a list returned by the function fig$cap()
+        str_caption <- options$fig.cap$cap_txt
+        str_anchr <- options$fig.cap$anchor
+    } else {
+        ## options$fig.cap is a character object (hard coded, no anchor)
+        str_caption <- options$fig.cap
+        str_anchr <- ""
+    }
+    
+    paste('<figure', sty, '>', str_anchr, '<img src="',
+        opts_knit$get('base.url'), paste(x, collapse = '.'),
+        '"><figcaption>', str_caption, '</figcaption></figure>',
+        sep = '')
+    
+})
+```
+
+
+```{r read_fig_cap, echo=FALSE}
+## This chucnk will read through *this* Rmd file, and attempt to extract all of the 
+## labels (not caption text) used for Figure captions. These labels are used
+## as anchors, so scanning through the document now will allow us to create cross references
+## before the caption actually appears. 
+
+## Get the name of this Rmd file
+rmdFn <- knitr::current_input()  # filename of input document
+
+## Read lines and close connection
+rmdCon <- file(rmdFn, open = "r")
+rmdLines <- readLines(rmdCon)
+close(rmdCon)
+
+## Pull out all occurences of at least one back tick, followed 
+## by any number of characters, followed by fig$cap (all on one line)
+figscap_idx <- grep("`+(.*)fig\\$cap", rmdLines)
+rmdLines <- rmdLines[figscap_idx]
+
+## Get rid of everything up until the start of the caption label
+## This presumes the caption label is the first argument of fig$cap()
+## E.g., fig.cap = fig$cap("my_label", ...)
+rmdLinesSansPre <- sub("(.*)fig\\$cap(.*?)[\"']", "", rmdLines)
+
+## Identify everything up until the first quote
+match_data <- regexpr("(.*?)[\"']", rmdLinesSansPre)
+
+## Reduce the length by one, because we're not interested in the final quote
+attr(match_data, "match.length") <- attr(match_data, "match.length") - 1
+
+## Extract
+fig_labels <- regmatches(rmdLinesSansPre, match_data, invert=FALSE)
+
+if (length(fig_labels) > 0) {
+
+    ## Test for duplicates
+    if (anyDuplicated(fig_labels) > 0) stop("Duplicate caption labels detected")
+    
+    ## Create a named list of Figure numbers
+    ref <- as.list(1:length(fig_labels))
+    names(ref) <- fig_labels
+}    
+
+```
+
+
+
+
 ### Assignment 1
 #### Question 1
 
@@ -13,9 +141,26 @@ output: html_document
 <!-- Hérna er cóðinn fyrir fyrsta lið án evaluation -->
 The following code sample shows how to import the data needed for the assignement hosted on a https server "https://raw.githubusercontent.com/juliuspeturg/Assignment1/master/fuel.csv".
 To better understand the data a summary of the imported data is displayed bellow aswell as a lineplot of the fuel price index
-```{r, message=FALSE,echo=TRUE,eval=TRUE}
+
+down vote
+accepted
+I think you should be able to use regular html comments:
+
+<!--$$x=\frac{1+y}{1+2z^2}$$
+$$\begin{equation} x=y+3 \label{eq:xdef}
+\end{equation}$$
+In equation (\ref{eq:xdef}) we saw $\dots$ -->
+
+```{r chunk2}
+par(mar=c(2.5, 2.5, 0.5, 0.5)); plot(5:1)
+```
+
+
+
+
+```{r chunk1,fig.cap=fig$cap("five_to_one", "This is a plot of the numbers five to one")}
 #remove all variables af data from global enviroment
-rm(list=ls())
+#rm(list=ls())
 suppressPackageStartupMessages(library(RCurl))
 # load csv file from URL
 x = getURL("https://raw.githubusercontent.com/juliuspeturg/Assignment1/master/fuel.csv")
@@ -27,9 +172,11 @@ plot(fpi~rtime,type = "l",main="Fuel price index in the US")
 grid()
 ```
 
+
+
 #### Question 2
 For statinary time series the ACF will drop to zero very quickly however for nonstationary time series the ACF will taper off slowly. As we can see by looking at the ACF of the fuel price index the ACF tapers off slowly, from that we can conclude that the timeseries is nonstationary and therefor the mean of the series is not going to informe us a lot on the timeseries, see figure below for ACF of timeseries  
-```{r eval=TRUE, echo=TRUE,message=FALSE}
+```{r eval=TRUE, echo=TRUE,message=FALSE,fig.cap=c("***Figure 1:***")}
 #Generate timeseries object for fuelindex
 fuel.ts = ts(data = fuel$fpi, start = c(1979,1),frequency = 12)
 #evaluate the mean of the timeseries
@@ -48,7 +195,7 @@ summary(mod)
 
 #### Question 4
 
-```{r eval=TRUE, echo=TRUE,message=FALSE}
+```{r eval=TRUE, echo=TRUE,message=FALSE,fig.show='hold'}
 # Trainingset
 myts <- ts(fpi, start = c(1979,1), end =c(2003,12),frequency = 12)
 # Testset
@@ -117,6 +264,7 @@ lines(fuel_test,col=2)
 grid()
 ```
 
+------
 ### Assignment 2
 #### Question 1
 
@@ -191,7 +339,7 @@ acf.plot <- function(y){
 
 #### Question 7
 
-```{r eval=TRUE, echo=TRUE,message=FALSE}
+```{r eval=TRUE, echo=TRUE,message=FALSE,fig.show='hold'}
 ts.sim1 <- arima.sim(n=250, list(ar=c(0.5)))        
 ts.sim2 <- arima.sim(n=250, list(ar=c(-0.5)))
 ts.sim3 <- arima.sim(n=250, list(ar=c(0.5,0.2)))
@@ -221,3 +369,62 @@ ts.sim9_diff1 <- diff(ts.sim9, differences=1) #first difference
 plot.ts(ts.sim9_diff1, col=3)
 lines(ts.sim9, col=2)
 ```
+
+### **Assignment 3**
+#### Question 1
+
+
+
+
+### Assignment 4
+#### Question 1
+
+```{r eval=TRUE, echo=TRUE,message=FALSE}
+rm(list=ls())
+require(googleVis)
+op <- options(gvis.plot.tag='chart')
+
+require(RCurl)
+x = getURL("https://raw.githubusercontent.com/juliuspeturg/Assignment1/master/gamma-visitolur.csv")
+gamma <- read.csv(text=x, stringsAsFactors = FALSE, header=TRUE)
+
+gamma$Date <- as.Date(gamma$Date, "%Y-%m-%d")
+gamma <- na.omit(gamma)
+names(gamma)[names(gamma)=="GAMMA.v.ed.sit.f6.lur"] <- "GAMMA Equity Index"
+
+```
+
+```{r,results='asis', tidy=FALSE,, fig.width = 7, fig.height = 7}
+  A <- gvisAnnotationChart(gamma, datevar = 'Date', numvar = 'GAMMA Equity Index', date.format = "YY-mm-dd")
+plot(A)  
+```
+
+```{r eval=TRUE,echo=FALSE}
+## Set options back to original options
+options(op)
+```
+
+#### Question 2
+
+```{r eval=TRUE, echo=TRUE,message=FALSE}
+max_row_training = max(which(gamma$Date=="2013-12-31"))
+gamma_train <- head(gamma, n=max_row_training)
+gamma_test <- tail(gamma, n=(nrow(gamma)-max_row_training))
+gamma.ts <- ts(gamma$`GAMMA Equity Index`)
+```
+
+#### Question 3
+
+```{r eval=TRUE, echo=TRUE,message=FALSE}
+gamma.ts <- ts(gamma$`GAMMA Equity Index`)
+gamma_train.ts <- ts(gamma_train$`GAMMA Equity Index`)
+gamma_test.ts <- ts(gamma_test$`GAMMA Equity Index`) 
+
+# fit_gamma <- ses(gamma_training$`GAMMA Equity Index`)
+require(forecast)
+fit_gamma <- HoltWinters(gamma_train.ts, beta = FALSE,gamma = FALSE)
+f.fit_gamma <- forecast(fit_gamma, 20)
+plot(f.fit_gamma)
+accuracy(f.fit_gamma)
+```
+
