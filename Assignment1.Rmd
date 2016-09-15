@@ -4,11 +4,13 @@ author:
 - "Júlíus Pétur Guðjohnsen"
 - "Sigurður Jónsson"
 date: "`r format(Sys.time(), '%d.%m.%Y')`"
-output: html_document
-fig_caption: yes
-self_contained: yes
-smart: no
-
+output: 
+  html_document: 
+    fig_height: 4
+    fig_width: 7
+    fig_caption: yes
+    self_contained: yes
+    smart: no
 ---
 
 ```{r auto_num_functions, echo=FALSE}
@@ -53,7 +55,7 @@ fig <- local({
 
 ```
 
-```{r setup, echo=TRUE}
+```{r setup, echo=FALSE}
 
 ## This chunk replaces the default hook for processing plots. It achieves the purposes,
 ## of laying out auto-numbered captions, but other functionality may be gone.
@@ -134,56 +136,61 @@ if (length(fig_labels) > 0) {
 
 
 
-### Assignment 1
+### **Assignment 1**
 #### Question 1
 
 
 <!-- Hérna er cóðinn fyrir fyrsta lið án evaluation -->
 The following code sample shows how to import the data needed for the assignement hosted on a https server "https://raw.githubusercontent.com/juliuspeturg/Assignment1/master/fuel.csv".
-To better understand the data a summary of the imported data is displayed bellow aswell as a lineplot of the fuel price index
+To better understand the data a summary of the imported data is displayed bellow aswell as a lineplot of the fuel price index, see  `r fig$ref("fuel_data_plot",link=TRUE)`.
 
-down vote
-accepted
-I think you should be able to use regular html comments:
 
 <!--$$x=\frac{1+y}{1+2z^2}$$
 $$\begin{equation} x=y+3 \label{eq:xdef}
 \end{equation}$$
 In equation (\ref{eq:xdef}) we saw $\dots$ -->
 
-```{r chunk2}
-par(mar=c(2.5, 2.5, 0.5, 0.5)); plot(5:1)
-```
 
-
-
-
-```{r chunk1,fig.cap=fig$cap("five_to_one", "This is a plot of the numbers five to one")}
-#remove all variables af data from global enviroment
-#rm(list=ls())
+```{r chunk1}
 suppressPackageStartupMessages(library(RCurl))
 # load csv file from URL
-x = getURL("https://raw.githubusercontent.com/juliuspeturg/Assignment1/master/fuel.csv")
-fuel = read.csv(text=x,stringsAsFactors = FALSE)
+x <- getURL("https://raw.githubusercontent.com/juliuspeturg/Assignment1/master/fuel.csv")
+fuel <- read.csv(text=x,stringsAsFactors = FALSE)
 summary(fuel)
 attach(fuel)
-par(mfrow=c(1,1))
-plot(fpi~rtime,type = "l",main="Fuel price index in the US")
-grid()
-```
 
+windows.options(width=7, height=4)
+op <- par(cex.lab=0.8, cex.axis=0.8, cex.main=0.8, cex.sub=0.8)
+par(mar=c(4.1,4.1,1.1,1.1))
+par(mfrow=c(1,1))
+plot(fpi~rtime,type = "l",main="",ylab = "",xlab = "")
+grid()
+title(main="Fuel price index in the US", line = 0.5)
+title(xlab="Time", line = 2)
+title(ylab="Fpi", line = 2)
+
+```
+`r fig$cap("fuel_data_plot", "The fuel price index from 1979 to 2004", inline=TRUE)`
 
 
 #### Question 2
 For statinary time series the ACF will drop to zero very quickly however for nonstationary time series the ACF will taper off slowly. As we can see by looking at the ACF of the fuel price index the ACF tapers off slowly, from that we can conclude that the timeseries is nonstationary and therefor the mean of the series is not going to informe us a lot on the timeseries, see figure below for ACF of timeseries  
-```{r eval=TRUE, echo=TRUE,message=FALSE,fig.cap=c("***Figure 1:***")}
+```{r eval=TRUE, echo=TRUE,message=FALSE}
 #Generate timeseries object for fuelindex
 fuel.ts = ts(data = fuel$fpi, start = c(1979,1),frequency = 12)
 #evaluate the mean of the timeseries
-cat(c("mean_fpi:",mean(fpi)))
-acf(fuel.ts,main="ACF for fuel price index")
+# #cat(c("mean_fpi:",mean(fpi)))
+op <- par(cex.lab=0.8, cex.axis=0.8, cex.main=0.8, cex.sub=0.8)
+par(mar=c(4.1,4.1,1.1,1.1))
+par(mfrow=c(1,1))
+acf(fuel.ts,main="",ylab = "",xlab = "")
 grid()
+title(main="ACF for fuel price index", line = 0.5)
+title(xlab="Lag", line = 2)
+title(ylab="ACF", line = 2)
+
 ```
+`r fig$cap("fuel_ACF", "Here we se tha ACF for the fuel price index, as we can see the ACF tapers of", inline=TRUE)`
 
 #### Question 3
 
@@ -195,29 +202,83 @@ summary(mod)
 
 #### Question 4
 
-```{r eval=TRUE, echo=TRUE,message=FALSE,fig.show='hold'}
+```{r eval=FALSE, echo=TRUE,message=FALSE,results=FALSE}
 # Trainingset
 myts <- ts(fpi, start = c(1979,1), end =c(2003,12),frequency = 12)
 # Testset
 myts2 <- ts(fpi, start = c(2004,1), end =c(2004,12),frequency = 12)
 require(forecast)
-monthplot(myts)
-seasonplot(myts)
+op <- par(cex.lab=0.8, cex.axis=0.8, cex.main=0.8, cex.sub=0.8)
+par(mar=c(4.1,4.1,1.1,1.1))
+par(mfrow=c(1,1))
+
+monthplot(myts,main="",ylab = "",xlab = "")
+grid()
+title(main="Fuel price index in the US", line = 0.5)
+title(xlab="Time", line = 2)
+title(ylab="Fpi", line = 2)
+
+seasonplot(myts,main="",ylab = "",xlab = "")
+grid()
+title(main="Seasonal Plot", line = 0.5)
+title(xlab="Month", line = 2)
+title(ylab="Factor", line = 2)
+
+fit1 <- stl(myts,s.window = "period")
+#3 eða 4
+plot(fit1,main="")
+grid()
+title(main="Multiplot", line = 0.5)
+
+
+```
+
+
+```{r eval=TRUE, echo=FALSE,message=FALSE}
+myts <- ts(fpi, start = c(1979,1), end =c(2003,12),frequency = 12)
+# Testset
+myts2 <- ts(fpi, start = c(2004,1), end =c(2004,12),frequency = 12)
+require(forecast)
+op <- par(cex.lab=0.8, cex.axis=0.8, cex.main=0.8, cex.sub=0.8)
+par(mar=c(4.1,4.1,1.1,1.1))
+par(mfrow=c(1,1))
+monthplot(myts,main="",ylab = "",xlab = "")
+grid()
+title(main="Fuel price index in the US", line = 0.5)
+title(xlab="Time", line = 2)
+title(ylab="Fpi", line = 2)
+```
+`r fig$cap("fuel_monthplot", "Monthplot from tha Forecast package", inline=TRUE)`
+```{r eval=TRUE, echo=FALSE,message=FALSE}
+op <- par(cex.lab=0.8, cex.axis=0.8, cex.main=0.8, cex.sub=0.8)
+par(mar=c(4.1,4.1,1.1,1.1))
+par(mfrow=c(1,1))
+seasonplot(myts,main="",ylab = "",xlab = "")
+grid()
+title(main="Seasonal Plot", line = 0.5)
+title(xlab="Month", line = 2)
+title(ylab="Factor", line = 2)
+```
+`r fig$cap("fuel_seasonal", "Seasonal plot from the Forecast package", inline=TRUE)`
+
+```{r eval=TRUE, echo=FALSE,message=FALSE}
+op <- par(cex.lab=0.8, cex.axis=0.8, cex.main=0.8, cex.sub=0.8)
+par(mar=c(4.1,4.1,1.1,1.1))
 par(mfrow=c(1,1))
 fit1 <- stl(myts,s.window = "period")
 #3 eða 4
-plot(fit1)
+plot(fit1,main="")
+title(main="Multiplot", line = 2)
 ```
+`r fig$cap("fuel_seasonal_total", "Seasonal plot of the data", inline=TRUE)`
+
 
 #### Question 5
 
 ```{r eval=TRUE, echo=TRUE,message=FALSE}
 fuel.ts <- ts(fuel$fpi, frequency=12, start=c(1979,1))
-
 fuel_train <- window(fuel.ts, start=c(1979,1), end=c(2003,12))
 fuel_test <- window(fuel.ts, start=c(2004,1), end=c(2004,12))
-
-
 ```
 
 #### Question 6
@@ -225,53 +286,102 @@ fuel_test <- window(fuel.ts, start=c(2004,1), end=c(2004,12))
 ```{r eval=TRUE, echo=TRUE,message=FALSE}
 fit2 <- ses(fuel_train,h = 12, alpha = 0.1,exponential=TRUE)
 f.fit2 <- forecast(fit2,12)
-plot(f.fit2,ylab="fpi",xlab="time")
+op <- par(cex.lab=0.8, cex.axis=0.8, cex.main=0.8, cex.sub=0.8)
+par(mar=c(4.1,4.1,1.1,1.1))
+par(mfrow=c(1,1))
+plot(f.fit2,main="",ylab="",xlab="")
 lines(fuel_train)
 lines(fuel_test,col=2)
 grid()
+title(main="Simple Explonential Smoothing Forecast", line = 0.5)
+title(xlab="Time", line = 2)
+title(ylab="Fpi", line = 2)
 ```
+`r fig$cap("SES_fuel", "Simple exponential smoothing forecast for the year 2004", inline=TRUE)`
 
 #### Question 7
 
 ```{r eval=TRUE, echo=TRUE,message=FALSE}
 fit3 <- ses(fuel_train,h = 12, exponential=FALSE)
 f.fit3 <- forecast(fit3,12)
-plot(f.fit3,ylab="fpi",xlab="time")
+op <- par(cex.lab=0.8, cex.axis=0.8, cex.main=0.8, cex.sub=0.8)
+par(mar=c(4.1,4.1,1.1,1.1))
+par(mfrow=c(1,1))
+plot(f.fit3,main="",ylab="",xlab="")
 lines(fuel_train)
 lines(fuel_test,col=2)
 grid()
+title(main="Local Trend Forecast", line = 0.5)
+title(xlab="Time", line = 2)
+title(ylab="Fpi", line = 2)
 ```
+`r fig$cap("local_fuel", "Local trend forecast for the year 2004", inline=TRUE)`
 
 #### Question 8
 
 ```{r eval=TRUE, echo=TRUE,message=FALSE}
 fit4 <- HoltWinters(myts, beta = FALSE,gamma = FALSE)
 f.fit4 <- forecast(fit4,12)
-plot(f.fit4,ylab="fpi",xlab="time")
+op <- par(cex.lab=0.8, cex.axis=0.8, cex.main=0.8, cex.sub=0.8)
+par(mar=c(4.1,4.1,1.1,1.1))
+par(mfrow=c(1,1))
+plot(f.fit4,main="",ylab="",xlab="")
 lines(fuel_train)
 lines(fuel_test,col=2)
 grid()
+title(main="HoltWinters Forecast", line = 0.5)
+title(xlab="Time", line = 2)
+title(ylab="Fpi", line = 2)
 ```
+`r fig$cap("holtwinters_fuel", "HoltWinters forecast for the year 2004", inline=TRUE)`
 
 #### Question 9
 
 ```{r eval=TRUE, echo=TRUE,message=FALSE}
 fit5 <- rwf(myts, h=12, drift=FALSE, fan=FALSE, lambda=NULL, biasadj=FALSE)
 f.fit5 <- forecast(fit5,12)
-plot(f.fit5,ylab="fpi",xlab="time")
+op <- par(cex.lab=0.8, cex.axis=0.8, cex.main=0.8, cex.sub=0.8)
+par(mar=c(4.1,4.1,1.1,1.1))
+par(mfrow=c(1,1))
+plot(f.fit5,main="",ylab="",xlab="")
 lines(fuel_train)
 lines(fuel_test,col=2)
 grid()
+title(main="Random Walk Forecast", line = 0.5)
+title(xlab="Time", line = 2)
+title(ylab="Fpi", line = 2)
 ```
+`r fig$cap("randomwalk_fuel", "Random walk forecast for the year 2004 without drift", inline=TRUE)`
 
-------
-### Assignment 2
+#### Question 10
+
+```{r eval=TRUE, echo=TRUE,message=FALSE}
+RMSE_SES <- accuracy(f.fit2)
+RMSE_LT <- accuracy(f.fit3)
+RMSE_HW <- accuracy(f.fit4)
+RMSE_RW <- accuracy(f.fit5)
+
+ACC <- vector(length=4); ACC[1]=RMSE_SES[2]; ACC[2]=RMSE_LT[2]; ACC[3]=RMSE_HW[2]; ACC[4]=RMSE_RW[2]
+
+op <- par(cex.lab=0.8, cex.axis=0.8, cex.main=0.8, cex.sub=0.8)
+par(mar=c(4.1,4.1,1.1,1.1))
+par(mfrow=c(1,1))
+barplot(ACC,main="",names.arg=c("SES", "LT", "HW","RW"),xlab="")
+title(main="Error of Forecasts", line = 0.5)
+title(ylab="RMSE (%)", line = 2)
+```
+`r fig$cap("Accuracy", "Barplot showing the Error of each of the methods", inline=TRUE)`
+
+
+---
+
+### **Assignment 2**
 #### Question 1
 
 ```{r eval=TRUE, echo=TRUE,message=FALSE}
 library(RCurl)
-x = getURL("https://raw.githubusercontent.com/juliuspeturg/Assignment1/master/simdata.csv")
-simdata = read.csv(text=x,stringsAsFactors = FALSE,header=TRUE, sep="")
+x <- getURL("https://raw.githubusercontent.com/juliuspeturg/Assignment1/master/simdata.csv")
+simdata <- read.csv(text=x,stringsAsFactors = FALSE,header=TRUE, sep="")
 
 # A2-Q1: Plot the data
 
@@ -285,31 +395,41 @@ lines(y3,col='green')
 legend('topright', legend=c("y1", "y2","y3"),
        col=c('red','blue','green'), lty=1, bty='y', cex=.85)
 ```
+`r fig$cap("simdata_plot", "Plot of the three simdata series", inline=TRUE)`
 
 #### Question 2
 
 ```{r eval=TRUE, echo=TRUE,message=FALSE}
-par(mfrow=c(3,2)) 
-# par(mfrow=c(1,1)) 
-acf(y1)
-pacf(y1)
-acf(y2)
-pacf(y2)
-acf(y3)
-pacf(y3)
+op <- par(cex.lab=0.8, cex.axis=0.8, cex.main=0.8, cex.sub=0.8)
+par(mar=c(4.1,4.1,1.1,1.1))
+par(mfrow=c(3,2))
+
+# For cycle to plot the ACF and PACF for all the column in simdata
+for(i in 1:ncol(simdata)){
+  acf(simdata[[i]],main="",ylab="",xlab="")
+  title(main=paste("Series ",colnames(simdata[i])), line = 0.5)
+  title(xlab="Lag", line = 2)
+  title(ylab="ACF", line = 2)
+  
+  pacf(simdata[[i]],main="",ylab="",xlab="")
+  title(main=paste("Series ",colnames(simdata[i])), line = 0.5)
+  title(xlab="Lag", line = 2)
+  title(ylab="PACF", line = 2)
+}
+
 ```
+`r fig$cap("simdata_ACF_PACF", "Plot of the ACF and PACF for all three series", inline=TRUE)`
 
 #### Question 3
 
 ```{r eval=TRUE, echo=TRUE,message=FALSE}
 # A2-Q3: Identify the models using arima  <<< ATH BETUR
-
 arima(y1)
 arima(y2)
 arima(y3)
-
 auto.arima(y1) # líka hægt að nota auto.arima
 ```
+
 
 #### Question 4
 
@@ -325,7 +445,7 @@ plot(ts.sim, main="Simulated time series ts.sim")
 acf(ts.sim, main="ACF for ts.sim")
 pacf(ts.sim, main="PACF for ts.sim")
 ```
-
+`r fig$cap("Sim_ARIMA", "Simulated Arima series", inline=TRUE)`
 #### Question 6
 
 ```{r eval=TRUE, echo=TRUE,message=FALSE}
@@ -359,6 +479,7 @@ acf.plot(ts.sim6)
 acf.plot(ts.sim7)
 acf.plot(ts.sim8)
 ```
+`r fig$cap("ACF_ALL", "Plot of the simulated series, for all the series í question 7 ", inline=TRUE)`
 
 #### Question 8
 
@@ -366,21 +487,131 @@ acf.plot(ts.sim8)
 ts.sim9 <- arima.sim(list(order = c(1,1,1), ar = 0.7, ma=0.3), n = 250)
 
 ts.sim9_diff1 <- diff(ts.sim9, differences=1) #first difference
-plot.ts(ts.sim9_diff1, col=3)
-lines(ts.sim9, col=2)
+plot.ts(ts.sim9, col="red")
+lines(ts.sim9_diff1, col="blue")
+legend('topleft', legend=c("ts.sim9", "ts.sim9_diff1"),
+       col=c('red','blue'), lty=1, bty='y', cex=.85)
+grid()
 ```
+`r fig$cap("series_and_simseries", "some fucked up shit ", inline=TRUE)`
+
+---
 
 ### **Assignment 3**
 #### Question 1
 
+```{r eval=TRUE, echo=TRUE,message=FALSE}
+x <- getURL("https://vincentarelbundock.github.io/Rdatasets/csv/datasets/AirPassengers.csv")
+flightdata <- read.csv(text=x,stringsAsFactors = FALSE,header=TRUE)
+flightdata$X <- NULL
+y <- flightdata$AirPassengers
+
+SimpleMovingAverage <- function(y,n){
+  #this function takes in a dataframe having column 1 as data and
+  # column 2 the values of the time series
+  FC=matrix(nrow=(nrow(y)-(n-1)),ncol=2)
+  Y = y[[2]]
+  for(i in 1:(nrow(y)-(n-1))){
+  FC[i,2] = sum(Y[1:n])/n
+  FC[i,1] = y[(n+i),1]
+  Y <- Y[-1] 
+  }
+  FC <- na.omit(FC)
+  FC
+}
+
+A <- SimpleMovingAverage(flightdata,10)
+B <- SimpleMovingAverage(flightdata,5)
 
 
+plot(flightdata$time,flightdata$AirPassengers,type="l",col="blue")
+lines(A[,1],A[,2],col="red")
+lines(B[,1],B[,2],col="green")
+grid()
+```
+`r fig$cap("flightdata_sam", "Simple moving average for flight data", inline=TRUE)`
 
-### Assignment 4
+#### Questin 2
+
+```{r eval=TRUE, echo=TRUE,message=FALSE}
+ExponentialSmoothing <- function(y,alpha){
+  actual <- y[[2]]
+  forcast <- matrix(nrow=length(actual),ncol=2)
+  forcast[1,2] <- actual[1]
+  for(i in 2:length(actual)){
+    forcast[i,2] <- alpha*actual[i-1] + (1-alpha)*forcast[i-1,2]
+  }
+  forcast[,1] <- y[[1]]
+  forcast
+}
+
+C <- ExponentialSmoothing(flightdata,1)
+D <- ExponentialSmoothing(flightdata,0.5)
+
+
+plot(flightdata$time,flightdata$AirPassengers,type="l",col="blue")
+lines(C[,1],C[,2],col="red")
+lines(D[,1],D[,2],col="green")
+grid()
+```
+`r fig$cap("flightdata_ses", "simple explonential smoothing", inline=TRUE)`
+
+#### Question 3
+
+```{r eval=TRUE, echo=TRUE,message=FALSE}
+DoubleExponentialSmoothing <- function(y,alpha,beta){
+  actual <- y[[2]]
+  trend <- vector(length=length(actual))
+  forcast <- matrix(nrow=length(actual),ncol=2)
+  forcast[1,2] <- actual[1]
+  trend[1] <- actual[2] - actual[1]
+  for(i in 2:length(actual)){
+    forcast[i,2] <- alpha*actual[i-1] + (1-alpha)*(forcast[i-1,2]+trend[i-1])
+    trend[i]     <- beta*(forcast[i,2]-forcast[i-1,2])+(1-beta)*trend[i-1]
+  }
+  forcast[,1] <- y[[1]]
+  forcast
+  return((list(forcast,trend[length(trend)])))
+}
+
+E <- DoubleExponentialSmoothing(flightdata,0.2,0.3)
+G <- matrix(unlist(E[1]),ncol=2,byrow=FALSE)
+plot(flightdata$time,flightdata$AirPassengers,type="l",col="blue")
+lines(G[,1],G[,2],col="green")
+grid()
+```
+`r fig$cap("flightdata_des", "double exponential smoothing", inline=TRUE)`
+
+#### Question 4
+
+```{r eval=TRUE, echo=TRUE,message=FALSE}
+E <- DoubleExponentialSmoothing(flightdata,0.2,0.3)
+G <- matrix(unlist(E[1]),ncol=2,byrow=FALSE)
+trend <- as.numeric(E[2])
+predicted <- matrix(nrow = 20,ncol = 2)
+predicted[1,2] <- G[nrow(G),2]
+difference <- G[nrow(G),1]-G[(nrow(G)-1),1]
+predicted[1,1] <- G[nrow(G),1]+difference
+for(i in 2:nrow(predicted)){
+  predicted[i,2] <- predicted[1,2]+trend*(i-1)
+  predicted[i,1] <- predicted[i-1,1]+difference
+}
+
+stora <- rbind(G,predicted)
+plot(stora[,1],stora[,2],col="white",xlim=c(min(stora[,1]),max(stora[,1])),ylim=c(min(stora[,2]),(max(stora[,2])+50)))
+lines(flightdata$time,flightdata$AirPassengers,type="l",col="blue")
+lines(G[,1],G[,2],col="green")
+lines(predicted[,1],predicted[,2],col="red")
+grid()
+```
+`r fig$cap("flightdata_des_forecast", "double exponential smoothing with forecast 20 steps ahead", inline=TRUE)`
+
+---
+
+### **Assignment 4**
 #### Question 1
 
 ```{r eval=TRUE, echo=TRUE,message=FALSE}
-rm(list=ls())
 require(googleVis)
 op <- options(gvis.plot.tag='chart')
 
@@ -398,7 +629,7 @@ names(gamma)[names(gamma)=="GAMMA.v.ed.sit.f6.lur"] <- "GAMMA Equity Index"
   A <- gvisAnnotationChart(gamma, datevar = 'Date', numvar = 'GAMMA Equity Index', date.format = "YY-mm-dd")
 plot(A)  
 ```
-
+`r fig$cap("gamma_index", "Plot of the gamma equity index", inline=TRUE)`
 ```{r eval=TRUE,echo=FALSE}
 ## Set options back to original options
 options(op)
@@ -407,11 +638,19 @@ options(op)
 #### Question 2
 
 ```{r eval=TRUE, echo=TRUE,message=FALSE}
-max_row_training = max(which(gamma$Date=="2013-12-31"))
+max_row_training = max(which(gamma$Date=="2014-12-31"))
 gamma_train <- head(gamma, n=max_row_training)
 gamma_test <- tail(gamma, n=(nrow(gamma)-max_row_training))
-gamma.ts <- ts(gamma$`GAMMA Equity Index`)
+
+
+plot(gamma, type="l", col="white", main="Split of test & training set")
+lines(gamma_train, type="l", col=2)
+lines(gamma_test, type="l", col=3)
+legend('bottomright', legend=c("Training set", "Test set"),
+       col=c(2,3), lty=1, bty='y', cex=.85)
+grid()
 ```
+`r fig$cap("gamma_train_test", "A plot displaying the splt into trainingset and testset", inline=TRUE)`
 
 #### Question 3
 
@@ -425,6 +664,12 @@ require(forecast)
 fit_gamma <- HoltWinters(gamma_train.ts, beta = FALSE,gamma = FALSE)
 f.fit_gamma <- forecast(fit_gamma, 20)
 plot(f.fit_gamma)
+grid()
+```
+`r fig$cap("holtwinters_gamma", "holt winters forecast for the gammaindex", inline=TRUE)`
+
+```{r eval=TRUE, echo=TRUE,message=FALSE}
 accuracy(f.fit_gamma)
+
 ```
 
