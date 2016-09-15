@@ -104,6 +104,7 @@ acf.plot(ts.sim8)
 ts.sim9 <- arima.sim(list(order = c(1,1,1), ar = 0.7, ma=0.3), n = 250)
 
 ts.sim9_diff1 <- diff(ts.sim9, differences=1) #first difference
-plot.ts(ts.sim9_diff1, col=3)
-lines(ts.sim9, col=2)
-
+plot.ts(ts.sim9, col="red")
+lines(ts.sim9_diff1, col="blue")
+legend('bottomleft', legend=c("ts.sim9", "ts.sim9_diff1"),
+       col=c('red','blue'), lty=1, bty='y', cex=.85)
