@@ -1,8 +1,8 @@
 ---
 title: "Project 2"
 author: 
-- "Júlíus Pétur Guðjohnsen"
-- "Sigurður Jónsson"
+- "JÃºlÃ­us PÃ©tur GuÃ°johnsen"
+- "SigurÃ°ur JÃ³nsson"
 date: "`r format(Sys.time(), '%d.%m.%Y')`"
 output: 
   html_document: 
@@ -140,7 +140,7 @@ if (length(fig_labels) > 0) {
 
 
 The following code sample shows how to import the data needed for the assignement hosted on GitHub: https://raw.githubusercontent.com/juliuspeturg/Assignment2/.
-For Task 1 we wrote function with thee inputs y,d,l where y is the input data, d is the number of differenceiation and l is the number of lag´s to plot. the output of the function is 4 plot two ACF´s, PACF and a sprectrum plot of the data.
+For Task 1 we wrote function with thee inputs y,d,l where y is the input data, d is the number of differenceiation and l is the number of lagÂ´s to plot. the output of the function is 4 plot two ACFÂ´s, PACF and a sprectrum plot of the data.
 
 ```{r chunk1,eval=T}
 suppressPackageStartupMessages(library(RCurl))
@@ -201,7 +201,7 @@ So now we ca use ower function to analize the heat consumption time series.
 ```{r chunk2}
 acf.plot(VEKS$HC.c,0,168)
 ```
-`r fig$cap("plot1", "Plot of the two ACF´s (covariance and correlation) aswell as the PACF and Sprectrum plot with diff set at zero", inline=TRUE)`
+`r fig$cap("plot1", "Plot of the two ACFÂ´s (covariance and correlation) aswell as the PACF and Sprectrum plot with diff set at zero", inline=TRUE)`
 
 
 As we can see in `r fig$ref("plot1",link=F)` the ACF tapers of very slowly, this indicats tha the timeseries is nonstationari and we shoud diffirenciat to be able to extract any usueful information from tha plots so next we differenciate once and take anther look at the outputs.
@@ -210,5 +210,10 @@ As we can see in `r fig$ref("plot1",link=F)` the ACF tapers of very slowly, this
 ```{r chunk3}
 acf.plot(VEKS$HC.c,1,168)
 ```
-`r fig$cap("plot2", "Plot of the two ACF´s (covariance and correlation) aswell as the PACF and Sprectrum plot with diff set at zero", inline=TRUE)`
+`r fig$cap("plot2", "Plot of the two ACFÂ´s (covariance and correlation) aswell as the PACF and Sprectrum plot with diff set at 1", inline=TRUE)`
+
+In `r fig$ref("plot2",link=F)` We can se a pattern emerge, we see some intresting spikes in lag 12 and lag 24 lag 36 and so on.Both the ACF and PACF show sem cyclical behavior. If we look at the spectrum plotof the series we se two destinct spices with frequency of around 0.4 and 0.8. the inverse of thees frequencyc if the periog of 12hours and 24hours.
+
+
+
 
