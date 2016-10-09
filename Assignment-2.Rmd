@@ -197,23 +197,106 @@ acf.plot <- function(y,d,l){
 }
 
 ```
-So now we ca use ower function to analize the heat consumption time series.
+
+So now we ca use ouer function to analize the heat consumption time series.
+
 ```{r chunk2}
-acf.plot(VEKS$HC.c,0,168)
+acf.plot(VEKS$HC.c,0,50)
 ```
 `r fig$cap("plot1", "Plot of the two ACF´s (covariance and correlation) aswell as the PACF and Sprectrum plot with diff set at zero", inline=TRUE)`
 
 
-As we can see in `r fig$ref("plot1",link=F)` the ACF tapers of very slowly, this indicats tha the timeseries is nonstationari and we shoud diffirenciat to be able to extract any usueful information from tha plots so next we differenciate once and take anther look at the outputs.
+As we can see in `r fig$ref("plot1",link=F)` the ACF tapers of very slowly, this indicats tha the timeseries is nonstationari and we shoud diffirenciat to be able to extract any usueful information from tha plots so next we estimate the difference at lag=1 and take anther look at the outputs.
 
 
 ```{r chunk3}
-acf.plot(VEKS$HC.c,1,168)
+acf.plot(VEKS$HC.c,1,50)
 ```
 `r fig$cap("plot2", "Plot of the two ACF´s (covariance and correlation) aswell as the PACF and Sprectrum plot with diff set at 1", inline=TRUE)`
 
-In `r fig$ref("plot2",link=F)` We can se a pattern emerge, we see some intresting spikes in lag 12 and lag 24 lag 36 and so on.Both the ACF and PACF show sem cyclical behavior. If we look at the spectrum plotof the series we se two destinct spices with frequency of around 0.4 and 0.8. the inverse of thees frequencyc if the periog of 12hours and 24hours.
+In `r fig$ref("plot2",link=F)` We can se a pattern emerge, we see some intresting spikes in lag 12 and lag 24 lag 36 and so on.Both the ACF and PACF show sem cyclical behavior but the largest spike in lag 24. If we look at the spectrum plotof the series we se two destinct spices with frequency of around 0.4 and 0.8. the inverse of thees frequencyc if the periog of 24hours and 12hours. From deos make sens as there is 
+
+
+### **TASK 3**
+
+For this task we did simmilar things as in task 1, made a function to plot the cross correlation of tha possible meshurments that might be used to aid in forecasting the the head consumption. The meshurements for air temperatur, wind speed ang global radiation were used. and tha cross correlation of the three meshurements and the heat consumtion were evaluated as can be seen below.
+
+```{r chunk4,eval=T}
+CCF.plot <- function(d,l){
+  source("Multiplot.R")
+  suppressPackageStartupMessages(require(forecast))  
+  suppressPackageStartupMessages(require(ggplot2))
+  suppressPackageStartupMessages(require(ggfortify))
+  
+  HeatConsumption <- VEKS$HC.c
+  Air_Temperature <- VEKS$Ta.c
+  WindSpeed       <- VEKS$W.c 
+  GlobalRadiation <- VEKS$GR.c
+  
+  if(d!=0){
+    HeatConsumption <- diff(VEKS$HC.c,difference=d)
+    Air_Temperature     <- diff(VEKS$Ta.c,difference=d)
+    WindSpeed       <- diff(VEKS$W.c, difference=d) 
+    GlobalRadiation <- diff(VEKS$GR.c,difference=d)
+  }
+  else{}
+  
+  ccf1 <- autoplot(stats::ccf(HeatConsumption,Air_Temperature,plot=FALSE,na.action=na.pass,lag.max = l))+
+    geom_vline(xintercept = 0,colour = "red", linetype = "dotted")
+
+
+  ccf2 <- autoplot(stats::ccf(HeatConsumption,GlobalRadiation,plot=FALSE,na.action=na.pass,lag.max = l))+
+    geom_vline(xintercept = 0,colour = "red", linetype = "dotted")                  
+
+  
+  ccf3 <- autoplot(stats::ccf(HeatConsumption,WindSpeed,plot=FALSE,na.action=na.pass,lag.max = l))+
+    geom_vline(xintercept = 0,colour = "red", linetype = "dotted")
+
+  
+  multiplot(ccf1,ccf2,ccf3,cols=1)
+}
+
+```
+
+the input to the plotfunction is  d and l for the lag.max, the difference to be used on the data. so lets see what tha cross correlation looks like at zero difference
+
+```{r chunk5}
+CCF.plot(0,20)
+```
+`r fig$cap("plot3", "Plot of the cross correlation between the consumtion and Air Air_Temperature(top),Windspeed (middle) and Global Radiation(bottom) with diff set at zero. The red dottet line is Lag=0", inline=TRUE)`
+
+As wee can see in `r fig$ref("plot3")` there is not much information to be extracted from these plot. agen due to the series being non-stationari so we replot again with now with diff=1.
+
+```{r chunk6}
+CCF.plot(1,20)
+```
+`r fig$cap("plot4", "Plot of the cross correlation between the consumtion and Air Air_Temperature(top),Windspeed (middle) and Global Radiation(bottom) with diff set at 1. The red dottet line is Lag=0", inline=TRUE)`
+
+From `f fig$ref("plot4")` we think therea might be some indicator of lagged effect in lag 0 and lag 1 for the air temperature and windspeed and some at lag 1 for global radiation so now it shoud be interesting what pre-whitening will do to tha data. lets start with looking at air temperature
+
+```{r chunk7}
+  HeatConsumption <- VEKS$HC.c
+  Air_Temperature <- VEKS$Ta.c
+  WindSpeed       <- VEKS$W.c 
+  GlobalRadiation <- VEKS$GR.c
+x1 <- ggAcf(Air_Temperature,na.action=na.pass)+ggtitle("Acf for Air Temp. diff 0")
+x2 <- ggPacf(Air_Temperature,na.action=na.pass)+ggtitle("Pacf for Air Temp. diff 0")
+x3 <- ggAcf(diff(Air_Temperature,difference=1),na.action=na.pass)+ggtitle("Acf for Air Temp. diff 1")
+x4 <- ggPacf(diff(Air_Temperature,difference=1),na.action=na.pass)+ggtitle("Pacf for Air Temp. diff 1")
+
+multiplot(x1,x3,x2,x4,cols=2)
+```
 
 
 
 
+
+
+```{r chunk8}
+# ar1model1 = arima(Air_Temperature, order = c(1,1,0))
+# ar1model1
+# pwx1=ar1model1$residuals
+# newpwy1 = filter(HeatConsumption, filter = c(1,-1.6741,.6741), sides =1)
+# ccf (newpwy1,pwx1,na.action=na.pass)
+
+```
