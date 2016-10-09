@@ -1,0 +1,214 @@
+---
+title: "Project 2"
+author: 
+- "Júlíus Pétur Guðjohnsen"
+- "Sigurður Jónsson"
+date: "`r format(Sys.time(), '%d.%m.%Y')`"
+output: 
+  html_document: 
+    fig_height: 4
+    fig_width: 7
+    fig_caption: yes
+    self_contained: yes
+    smart: no
+---
+
+```{r auto_num_functions, echo=FALSE}
+# A function for generating captions and cross-references
+
+fig <- local({
+    i <- 0
+    list(
+        cap=function(refName, text, center=FALSE, col="black", inline=FALSE) {
+            i <<- i + 1
+            ref[[refName]] <<- i
+            css_ctr <- ""
+            if (center) css_ctr <- "text-align:center; display:inline-block; width:100%;"
+            cap_txt <- paste0("<span style=\"color:", col, "; ", css_ctr, "\">Figure ", i, ": ", text , "</span>")
+            anchor <- paste0("<a name=\"", refName, "\"></a>")
+            if (inline) {
+                paste0(anchor, cap_txt)    
+            } else {
+                list(anchor=anchor, cap_txt=cap_txt)
+            }
+        },
+        
+        ref=function(refName, link=FALSE, checkRef=TRUE) {
+            
+            ## This function puts in a cross reference to a caption. You refer to the
+            ## caption with the refName that was passed to fig$cap() (not the code chunk name).
+            ## The cross reference can be hyperlinked.
+            
+            if (checkRef && !refName %in% names(ref)) stop(paste0("fig$ref() error: ", refName, " not found"))
+            if (link) {
+                paste0("<A HREF=\"#", refName, "\">Figure ", ref[[refName]], "</A>")
+            } else {
+                paste0("Figure ", ref[[refName]])
+            }
+        },
+        
+        ref_all=function(){
+            ## For debugging
+            ref
+        })
+})
+
+```
+
+```{r setup, echo=FALSE}
+
+## This chunk replaces the default hook for processing plots. It achieves the purposes,
+## of laying out auto-numbered captions, but other functionality may be gone.
+
+library(knitr)
+knit_hooks$set(plot = function(x, options) {
+    sty <- ""
+    if (options$fig.align == 'default') {
+        sty <- ""
+    } else {
+        sty <- paste0(" style=\"text-align:", options$fig.align, ";\"")
+    }
+    
+    if (is.list(options$fig.cap)) {
+        ## options$fig.cap is a list returned by the function fig$cap()
+        str_caption <- options$fig.cap$cap_txt
+        str_anchr <- options$fig.cap$anchor
+    } else {
+        ## options$fig.cap is a character object (hard coded, no anchor)
+        str_caption <- options$fig.cap
+        str_anchr <- ""
+    }
+    
+    paste('<figure', sty, '>', str_anchr, '<img src="',
+        opts_knit$get('base.url'), paste(x, collapse = '.'),
+        '"><figcaption>', str_caption, '</figcaption></figure>',
+        sep = '')
+    
+})
+```
+
+
+```{r read_fig_cap, echo=FALSE}
+## This chucnk will read through *this* Rmd file, and attempt to extract all of the 
+## labels (not caption text) used for Figure captions. These labels are used
+## as anchors, so scanning through the document now will allow us to create cross references
+## before the caption actually appears. 
+
+## Get the name of this Rmd file
+rmdFn <- knitr::current_input()  # filename of input document
+
+## Read lines and close connection
+rmdCon <- file(rmdFn, open = "r")
+rmdLines <- readLines(rmdCon)
+close(rmdCon)
+
+## Pull out all occurences of at least one back tick, followed 
+## by any number of characters, followed by fig$cap (all on one line)
+figscap_idx <- grep("`+(.*)fig\\$cap", rmdLines)
+rmdLines <- rmdLines[figscap_idx]
+
+## Get rid of everything up until the start of the caption label
+## This presumes the caption label is the first argument of fig$cap()
+## E.g., fig.cap = fig$cap("my_label", ...)
+rmdLinesSansPre <- sub("(.*)fig\\$cap(.*?)[\"']", "", rmdLines)
+
+## Identify everything up until the first quote
+match_data <- regexpr("(.*?)[\"']", rmdLinesSansPre)
+
+## Reduce the length by one, because we're not interested in the final quote
+attr(match_data, "match.length") <- attr(match_data, "match.length") - 1
+
+## Extract
+fig_labels <- regmatches(rmdLinesSansPre, match_data, invert=FALSE)
+
+if (length(fig_labels) > 0) {
+
+    ## Test for duplicates
+    if (anyDuplicated(fig_labels) > 0) stop("Duplicate caption labels detected")
+    
+    ## Create a named list of Figure numbers
+    ref <- as.list(1:length(fig_labels))
+    names(ref) <- fig_labels
+}    
+
+```
+
+
+
+
+### **TASK 1**
+
+
+The following code sample shows how to import the data needed for the assignement hosted on GitHub: https://raw.githubusercontent.com/juliuspeturg/Assignment2/.
+For Task 1 we wrote function with thee inputs y,d,l where y is the input data, d is the number of differenceiation and l is the number of lag´s to plot. the output of the function is 4 plot two ACF´s, PACF and a sprectrum plot of the data.
+
+```{r chunk1,eval=T}
+suppressPackageStartupMessages(library(RCurl))
+x = getURL("https://raw.githubusercontent.com/juliuspeturg/Assignment2/master/VEKS.csv")
+VEKS = read.csv(text=x,stringsAsFactors = FALSE,header=TRUE)
+
+acf.plot <- function(y,d,l){
+  source("Multiplot.R")
+  suppressPackageStartupMessages(require(ggplot2))
+  suppressPackageStartupMessages(require(ggfortify))
+  if(d!=0){
+    y <- diff(y,difference=d)
+  }
+  else{}
+  #----------Autocovariance--------#
+  acf <- acf(y,type="covariance", na.action = na.pass ,plot = FALSE,lag.max=l)
+  acfdf <- with(acf, data.frame(lag, acf))
+  
+  p1 <- ggplot(data = acfdf, mapping = aes(x = lag, y = acf)) +
+    geom_hline(aes(yintercept = 0)) +
+    geom_segment(mapping = aes(xend = lag, yend = 0))+
+    xlab("lag")+
+    ylab("ACF")+
+    ggtitle("AutoCovariance")
+  #----------AutoCorrelation--------#
+  c_acf <- acf(y,type="correlation", na.action = na.pass ,plot = FALSE,lag.max=l)
+  c_acfdf <- with(c_acf, data.frame(lag, acf))
+  ci <- qnorm((1 + 0.95)/2)/sqrt(c_acf$n.used)
+  p2 <- ggplot(data = c_acfdf, mapping = aes(x = lag, y = acf)) +
+    geom_hline(aes(yintercept = 0)) +
+    geom_segment(mapping = aes(xend = lag, yend = 0))+
+    ggplot2::geom_hline(yintercept=c(-ci, ci), colour="blue", linetype="dashed")+
+    xlab("lag")+
+    ylab("ACF")+
+    ggtitle("AutoCorrelation")
+  
+  #----------PACF--------#
+  bpacf <- pacf(y,na.action = na.pass,plot = FALSE,lag.max=l)
+  bpacfdf <- with(bpacf, data.frame(lag, acf))
+  
+  p3 <- ggplot(data = bpacfdf, mapping = aes(x = lag, y = acf)) +
+    geom_hline(aes(yintercept = 0)) +
+    geom_segment(mapping = aes(xend = lag, yend = 0))+
+    ggplot2::geom_hline(yintercept=c(-ci, ci), colour="blue", linetype="dashed")+
+    xlab("lag")+
+    ylab("PACF")+
+    ggtitle("Patial AutoCorrelation")
+  #----------Spectrum--------#
+  p4 <- autoplot(spec.ar(na.omit(y), plot = FALSE))+
+    geom_vline(xintercept = 0.042)+
+    geom_vline(xintercept = 0.083)+
+    ggtitle("Spectrum Plot")
+  multiplot(p1,p2,p3,p4,cols = 2)
+}
+
+```
+So now we ca use ower function to analize the heat consumption time series.
+```{r chunk2}
+acf.plot(VEKS$HC.c,0,168)
+```
+`r fig$cap("plot1", "Plot of the two ACF´s (covariance and correlation) aswell as the PACF and Sprectrum plot with diff set at zero", inline=TRUE)`
+
+
+As we can see in `r fig$ref("plot1",link=F)` the ACF tapers of very slowly, this indicats tha the timeseries is nonstationari and we shoud diffirenciat to be able to extract any usueful information from tha plots so next we differenciate once and take anther look at the outputs.
+
+
+```{r chunk3}
+acf.plot(VEKS$HC.c,1,168)
+```
+`r fig$cap("plot2", "Plot of the two ACF´s (covariance and correlation) aswell as the PACF and Sprectrum plot with diff set at zero", inline=TRUE)`
+
