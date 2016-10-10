@@ -89,7 +89,7 @@ knit_hooks$set(plot = function(x, options) {
 
 
 ```{r read_fig_cap, echo=FALSE}
-## This chucnk will read through *this* Rmd file, and attempt to extract all of the 
+## This chunk will read through *this* Rmd file, and attempt to extract all of the 
 ## labels (not caption text) used for Figure captions. These labels are used
 ## as anchors, so scanning through the document now will allow us to create cross references
 ## before the caption actually appears. 
@@ -140,7 +140,7 @@ if (length(fig_labels) > 0) {
 
 
 The following code sample shows how to import the data needed for the assignement hosted on GitHub: https://raw.githubusercontent.com/juliuspeturg/Assignment2/.
-For Task 1 we wrote function with thee inputs y,d,l where y is the input data, d is the number of differenceiation and l is the number of lag´s to plot. the output of the function is 4 plot two ACF´s, PACF and a sprectrum plot of the data.
+For Task 1 we wrote function with three inputs: y,d,l where y is the input data, d is the number of differenceiation and l is the number of lags to plot. The output of the function is 4 plots: two ACF´s, PACF and a spectrum plot of the data.
 
 ```{r chunk1,eval=T}
 suppressPackageStartupMessages(library(RCurl))
@@ -162,7 +162,7 @@ yy <- qplot((1:length(Ta.c)),Ta.c,geom="line")+
 multiplot(xx,yy,cols = 1)
 
 ```
-`r fig$cap("heatVStemp", "skrifa", inline=TRUE)`
+`r fig$cap("heatVStemp", "Heat consumption and air temperature during the same one year period.", inline=TRUE)`
 
 We notice that there are fluctuations in the heat consumption data on a small scale (day by day and week by week) and also a seasonal fluctuation, indicating more heat consumption during the winter and less during the summer when the ambient air temperature is higher.
 
@@ -221,24 +221,24 @@ acf.plot <- function(y,d,l){
 
 ```
 
-So now we ca use ouer function to analize the heat consumption time series.
+Now we can use our function to analyze the heat consumption time series.
 
 ```{r chunk2}
 acf.plot(VEKS$HC.c,0,50)
 ```
-`r fig$cap("plot1", "Plot of the two ACF´s (covariance and correlation) aswell as the PACF and Sprectrum plot with diff set at zero", inline=TRUE)`
+`r fig$cap("plot1", "Plot of the two ACF´s (covariance and correlation) as well as the PACF and spectrum plot (difference=0).", inline=TRUE)`
 
 
-As we can see in `r fig$ref("plot1",link=F)` the ACF tapers of very slowly, this indicats tha the timeseries is nonstationari and we shoud diffirenciat to be able to extract any usueful information from tha plots so next we estimate the difference at lag=1 and take anther look at the outputs.
+As we can see in `r fig$ref("plot1",link=F)` the ACF tapers off very slowly. This indicates that the timeseries is non-stationary and we should differentiate to be able to extract any useful information from the plots. Next we estimate the series at difference=1 and take anther look at the outputs.
 
 
 ```{r chunk3}
 acf.plot(VEKS$HC.c,1,50)
 ```
-`r fig$cap("plot2", "Plot of the two ACF´s (covariance and correlation) aswell as the PACF and Sprectrum plot with diff set at 1", inline=TRUE)`
+`r fig$cap("plot2", "Plot of the two ACF´s (covariance and correlation) as well as the PACF and spectrum plot (difference=1).", inline=TRUE)`
 
 
-In `r fig$ref("plot2",link=F)` We can se a pattern emerge, we see some intresting spikes in lag 12 and lag 24 lag 36 and so on.Both the ACF and PACF show sem cyclical behavior but the largest spike in lag 24. If we look at the spectrum plot of the series we se two destinct spices with frequency of around 0.4 and 0.08. the inverse of these frequencyc is the periog of 24hours and 12hours. 
+In `r fig$ref("plot2",link=F)` we can see a pattern emerge. We see some interesting spikes in lag 12, lag 24, lag 36 etc. Both the ACF and PACF show semi cyclical behavior but the largest spike is in lag 24. If we look at the spectrum plot of the series we see two distinct spikes with frequency of around 0.04 and 0.08 - corresponding to a period of 24 hours and 12 hours respectively. This tells us that the heat consumption goes up every 12 and 24 hours. Our best guess is that the heat consumption goes up in the morning and then again in the evening when people are spending time in their apartments/houses but goes down in between (people go to work or are sleeping).
 
 ### **TASK 2**
 
@@ -251,9 +251,7 @@ suppressPackageStartupMessages(require(forecast))
 heat_con <- ts(na.omit(HC.c), frequency = 24)  
 
 ```
-
-lets examine the forescast for 6 hour ahead
-Let us first try a linear model using tslm()
+Let us examine the forecast for 6 hours ahead and first try a linear regression model using tslm():
 
 ```{r Task2_2}
 
@@ -264,7 +262,7 @@ fcast_lm <- forecast(fit_lm, h=6)
 autoplot(fcast_lm, include = 168)
 
 ```
-`r fig$cap("LMforecast", "skrifa um forecast", inline=TRUE)`
+`r fig$cap("LMforecast", "6 hour ahead forecast for the linear regression model.", inline=TRUE)`
 
 
 After taking the first difference of the heat consumption time series, we inspect the ACF and PACF plots
@@ -280,7 +278,7 @@ fcast1 <- forecast(fit1.arima,6)
 autoplot(fcast1, include = 168)
 
 ```
-`r fig$cap("ARIMAforecast", "skrifa um arima", inline=TRUE)`
+`r fig$cap("ARIMAforecast", "6 hour ahead forecast using ARIMA(3,1,1).", inline=TRUE)`
 
 Now we use the auto.arima() function from the forecast package in R. That gives a different model
 than we estimated earlier, or ARIMA(4,1,4).
@@ -297,15 +295,15 @@ fcast2 <- forecast(fit2.arima,6)
 autoplot(fcast2, include = 168)
 
 ```
-`r fig$cap("autoarima(4,1,4)forecast", "skrifa um arima", inline=TRUE)`
+`r fig$cap("autoarima(4,1,4)forecast", "6 hour ahead forecast using ARIMA(4,1,4).", inline=TRUE)`
 
-lets examine the forescast for 1 hour ahead with the same methods as above
+Lets examine the forecast for 1 hour ahead with the same methods as above:
 
 
 
 ### **TASK 3**
 
-For this task we did simmilar things as in task 1, made a function to plot the cross correlation of tha possible meshurments that might be used to aid in forecasting the the head consumption. The meshurements for air temperatur, wind speed ang global radiation were used. and tha cross correlation of the three meshurements and the heat consumtion were evaluated as can be seen below.
+For this task we did simmilar things as in task 1: made a function to plot the cross correlation of the possible measurements that might be used to aid in forecasting of the heat consumption. The measurements for air temperature, wind speed and global radiation were used. The cross correlation of the three measurements and the heat consumption were evaluated as can be seen below.
 
 ```{r chunk4,eval=T}
 CCF.plot <- function(d,l){
@@ -347,21 +345,21 @@ CCF.plot <- function(d,l){
 
 ```
 
-the input to the plotfunction is  d and l for the lag.max, the difference to be used on the data. so lets see what tha cross correlation looks like at zero difference
+The input to the plotfunction is d and l for the lag.max, the difference to be used on the data. So lets see what the cross correlation looks like at difference=0:
 
 ```{r chunk5}
 CCF.plot(0,20)
 ```
-`r fig$cap("plot3", "Plot of the cross correlation between the consumtion and Air Air_Temperature(top),Windspeed (middle) and Global Radiation(bottom) with diff set at zero. The red dottet line is Lag=0", inline=TRUE)`
+`r fig$cap("plot3", "Plot of the cross correlation between the heat consumption and air temperature(top), windspeed (middle) and global radiation(bottom) with difference=0. The red dotted line is Lag=0.", inline=TRUE)`
 
-As wee can see in `r fig$ref("plot3")` there is not much information to be extracted from these plot. agen due to the series being non-stationari so we replot again with now with diff=1.
+As we can see in `r fig$ref("plot3")` there is not much information to be extracted from these plots. Again that is due to the series being non-stationary so we plot again, now with difference=1.
 
 ```{r chunk6}
 CCF.plot(1,20)
 ```
-`r fig$cap("plot4", "Plot of the cross correlation between the consumtion and Air Air_Temperature(top),Windspeed (middle) and Global Radiation(bottom) with diff set at 1. The red dottet line is Lag=0", inline=TRUE)`
+`r fig$cap("plot4", "Plot of the cross correlation between the heat consumption and air temperature(top), windspeed (middle) and global radiation(bottom) with difference=1. The red dotted line is Lag=0.", inline=TRUE)`
 
-From `f fig$ref("plot4")` we think therea might be some indicator of lagged effect in lag 0 and lag 1 for the air temperature and windspeed and some at lag 1 for global radiation so now it shoud be interesting what pre-whitening will do to tha data. lets start with looking at air temperature
+From `f fig$ref("plot4")` we believe that there might be some indicator of a lagged effect in lag 0 and lag 1 for the air temperature and windspeed and some at lag 1 for global radiation. Now it should be interesting to see what pre-whitening will do to the data. Lets start by looking at air temperature:
 
 ```{r chunk7,eval=F,echo=F}
 HeatConsumption <- VEKS$HC.c
@@ -388,7 +386,7 @@ ggCcf(x,y,lag.max=25)+ggtitle("Pre-whitening series: Air temp. & Heat consumptio
     geom_vline(xintercept = c(-12,12),colour = "red", linetype = "dotted")+
     geom_vline(xintercept = c(-24,24),colour = "red", linetype = "dotted")
 ```
-`r fig$cap("plot5", "Pre-whitening. here we can strong indicator in lag 1", inline=TRUE)`
+`r fig$cap("plot5", "Pre-whitening - here we can see a strong indicator in lag 1.", inline=TRUE)`
 
 
 ```{r chunk9,eval=T,echo=F}
@@ -397,12 +395,12 @@ pw.wind<-auto.arima(VEKS$W.c)
 pw.Hc<-residuals(arima(VEKS$HC.c,order=c(4,1,2),fixed=c(pw.wind$coef)))
 x <- pw.wind$residuals
 y <- pw.Hc
-ggCcf(x,y,lag.max=25)+ggtitle("Pre-whitening series: Wind & Heat consumption")+
+ggCcf(x,y,lag.max=25)+ggtitle("Pre-whitening - Wind & Heat consumption")+
     geom_vline(xintercept = 0,colour = "red", linetype = "dotted")+
     geom_vline(xintercept = c(-12,12),colour = "red", linetype = "dotted")+
     geom_vline(xintercept = c(-24,24),colour = "red", linetype = "dotted")
 ```
-`r fig$cap("plot6", "Pre-whitening. here we can strong indicator in lag 1", inline=TRUE)`
+`r fig$cap("plot6", "Pre-whitening - strong indicator in lag 1", inline=TRUE)`
 
 
 ```{r chunk10,eval=T,echo=F}
@@ -411,9 +409,9 @@ pw.radiation<-auto.arima(VEKS$GR.c)
 pw.Hc<-residuals(arima(VEKS$HC.c,order=c(3,1,2),fixed=c(pw.radiation$coef)))
 x <- pw.radiation$residuals
 y <- pw.Hc
-ggCcf(x,y,lag.max=25)+ggtitle("Pre-whitening series: radiation & Heat consumption")+
+ggCcf(x,y,lag.max=25)+ggtitle("Pre-whitening series: Radiation & Heat consumption")+
     geom_vline(xintercept = 0,colour = "red", linetype = "dotted")+
     geom_vline(xintercept = c(-12,12),colour = "red", linetype = "dotted")+
     geom_vline(xintercept = c(-24,24),colour = "red", linetype = "dotted")
 ```
-`r fig$cap("plot7", "Pre-whitening. here we can strong indicator in lag 1", inline=TRUE)`
+`r fig$cap("plot7", "Pre-whitening. here we can strong indicator in lag 0.", inline=TRUE)`
