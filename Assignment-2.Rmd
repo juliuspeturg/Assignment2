@@ -242,15 +242,18 @@ CCF.plot <- function(d,l){
   else{}
   
   ccf1 <- autoplot(stats::ccf(HeatConsumption,Air_Temperature,plot=FALSE,na.action=na.pass,lag.max = l))+
-    geom_vline(xintercept = 0,colour = "red", linetype = "dotted")
+    geom_vline(xintercept = 0,colour = "red", linetype = "dotted")+
+    ggtitle("Air temp. & Heat Consumption")
 
 
   ccf2 <- autoplot(stats::ccf(HeatConsumption,GlobalRadiation,plot=FALSE,na.action=na.pass,lag.max = l))+
-    geom_vline(xintercept = 0,colour = "red", linetype = "dotted")                  
+    geom_vline(xintercept = 0,colour = "red", linetype = "dotted")+
+    ggtitle("Global rad. & Heat Consumption")
 
   
   ccf3 <- autoplot(stats::ccf(HeatConsumption,WindSpeed,plot=FALSE,na.action=na.pass,lag.max = l))+
-    geom_vline(xintercept = 0,colour = "red", linetype = "dotted")
+    geom_vline(xintercept = 0,colour = "red", linetype = "dotted")+
+    ggtitle("Wind & Heat Consumption")
 
   
   multiplot(ccf1,ccf2,ccf3,cols=1)
@@ -274,11 +277,12 @@ CCF.plot(1,20)
 
 From `f fig$ref("plot4")` we think therea might be some indicator of lagged effect in lag 0 and lag 1 for the air temperature and windspeed and some at lag 1 for global radiation so now it shoud be interesting what pre-whitening will do to tha data. lets start with looking at air temperature
 
-```{r chunk7}
-  HeatConsumption <- VEKS$HC.c
-  Air_Temperature <- VEKS$Ta.c
-  WindSpeed       <- VEKS$W.c 
-  GlobalRadiation <- VEKS$GR.c
+```{r chunk7,eval=F,echo=F}
+HeatConsumption <- VEKS$HC.c
+Air_Temperature <- VEKS$Ta.c
+WindSpeed       <- VEKS$W.c 
+GlobalRadiation <- VEKS$GR.c
+
 x1 <- ggAcf(Air_Temperature,na.action=na.pass)+ggtitle("Acf for Air Temp. diff 0")
 x2 <- ggPacf(Air_Temperature,na.action=na.pass)+ggtitle("Pacf for Air Temp. diff 0")
 x3 <- ggAcf(diff(Air_Temperature,difference=1),na.action=na.pass)+ggtitle("Acf for Air Temp. diff 1")
@@ -287,16 +291,43 @@ x4 <- ggPacf(diff(Air_Temperature,difference=1),na.action=na.pass)+ggtitle("Pacf
 multiplot(x1,x3,x2,x4,cols=2)
 ```
 
-
-
-
-
-
-```{r chunk8}
-# ar1model1 = arima(Air_Temperature, order = c(1,1,0))
-# ar1model1
-# pwx1=ar1model1$residuals
-# newpwy1 = filter(HeatConsumption, filter = c(1,-1.6741,.6741), sides =1)
-# ccf (newpwy1,pwx1,na.action=na.pass)
-
+```{r chunk8,eval=T,echo=F}
+pw.air_temp<-auto.arima(VEKS$Ta.c)
+#pw.temp = ARIMA(3,1,2) with drift
+pw.Hc<-residuals(arima(VEKS$HC.c,order=c(3,1,2),fixed=c(pw.air_temp$coef[1:5])))
+x <- pw.air_temp$residuals
+y <- pw.Hc
+ggCcf(x,y,lag.max=25)+ggtitle("Pre-whitening series: Air temp. & Heat consumption")+
+    geom_vline(xintercept = 0,colour = "red", linetype = "dotted")+
+    geom_vline(xintercept = c(-12,12),colour = "red", linetype = "dotted")+
+    geom_vline(xintercept = c(-24,24),colour = "red", linetype = "dotted")
 ```
+`r fig$cap("plot5", "Pre-whitening. here we can strong indicator in lag 1", inline=TRUE)`
+
+
+```{r chunk9,eval=T,echo=F}
+pw.wind<-auto.arima(VEKS$W.c)
+#pw.wind = ARIMA(4,1,2)
+pw.Hc<-residuals(arima(VEKS$HC.c,order=c(4,1,2),fixed=c(pw.wind$coef)))
+x <- pw.wind$residuals
+y <- pw.Hc
+ggCcf(x,y,lag.max=25)+ggtitle("Pre-whitening series: Wind & Heat consumption")+
+    geom_vline(xintercept = 0,colour = "red", linetype = "dotted")+
+    geom_vline(xintercept = c(-12,12),colour = "red", linetype = "dotted")+
+    geom_vline(xintercept = c(-24,24),colour = "red", linetype = "dotted")
+```
+`r fig$cap("plot6", "Pre-whitening. here we can strong indicator in lag 1", inline=TRUE)`
+
+
+```{r chunk10,eval=T,echo=F}
+pw.radiation<-auto.arima(VEKS$GR.c)
+#pw.radiation = ARIMA(3,1,2)
+pw.Hc<-residuals(arima(VEKS$HC.c,order=c(3,1,2),fixed=c(pw.radiation$coef)))
+x <- pw.radiation$residuals
+y <- pw.Hc
+ggCcf(x,y,lag.max=25)+ggtitle("Pre-whitening series: radiation & Heat consumption")+
+    geom_vline(xintercept = 0,colour = "red", linetype = "dotted")+
+    geom_vline(xintercept = c(-12,12),colour = "red", linetype = "dotted")+
+    geom_vline(xintercept = c(-24,24),colour = "red", linetype = "dotted")
+```
+`r fig$cap("plot7", "Pre-whitening. here we can strong indicator in lag 1", inline=TRUE)`
