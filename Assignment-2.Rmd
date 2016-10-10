@@ -144,9 +144,29 @@ For Task 1 we wrote function with thee inputs y,d,l where y is the input data, d
 
 ```{r chunk1,eval=T}
 suppressPackageStartupMessages(library(RCurl))
+suppressPackageStartupMessages(library(ggplot2))
 x = getURL("https://raw.githubusercontent.com/juliuspeturg/Assignment2/master/VEKS.csv")
 VEKS = read.csv(text=x,stringsAsFactors = FALSE,header=TRUE)
 
+attach(VEKS)
+source("Multiplot.R")
+
+xx <- qplot((1:length(HC.c)),HC.c,geom="line")+
+    xlab("Time")+
+    ylab("Heat Consumption")+
+    ggtitle("Heat Consumption")
+yy <- qplot((1:length(Ta.c)),Ta.c,geom="line")+
+    xlab("Time")+
+    ylab("Air Temperature")+
+    ggtitle("Air Temperature")
+multiplot(xx,yy,cols = 1)
+
+```
+`r fig$cap("heatVStemp", "skrifa", inline=TRUE)`
+
+We notice that there are fluctuations in the heat consumption data on a small scale (day by day and week by week) and also a seasonal fluctuation, indicating more heat consumption during the winter and less during the summer when the ambient air temperature is higher.
+
+```{r chunk1-1,eval=T}
 acf.plot <- function(y,d,l){
   source("Multiplot.R")
   suppressPackageStartupMessages(require(ggplot2))
@@ -189,10 +209,13 @@ acf.plot <- function(y,d,l){
     ylab("PACF")+
     ggtitle("Patial AutoCorrelation")
   #----------Spectrum--------#
-  p4 <- autoplot(spec.ar(na.omit(y), plot = FALSE))+
-    geom_vline(xintercept = 0.042)+
-    geom_vline(xintercept = 0.083)+
+  k = kernel("daniell", c(20,20))
+  specvalues = spec.pgram(na.omit(y), k, taper=0, log = "no",plot = F)
+  peak=specvalues$freq[which.max(specvalues$spec)]
+  p4 <- autoplot(spec.pgram(na.omit(y), k, taper=0, log = "no",plot = FALSE))+
+    geom_vline(xintercept = peak,colour = "red", linetype = "dotted")+
     ggtitle("Spectrum Plot")
+  
   multiplot(p1,p2,p3,p4,cols = 2)
 }
 
@@ -214,7 +237,70 @@ acf.plot(VEKS$HC.c,1,50)
 ```
 `r fig$cap("plot2", "Plot of the two ACF´s (covariance and correlation) aswell as the PACF and Sprectrum plot with diff set at 1", inline=TRUE)`
 
-In `r fig$ref("plot2",link=F)` We can se a pattern emerge, we see some intresting spikes in lag 12 and lag 24 lag 36 and so on.Both the ACF and PACF show sem cyclical behavior but the largest spike in lag 24. If we look at the spectrum plotof the series we se two destinct spices with frequency of around 0.4 and 0.8. the inverse of thees frequencyc if the periog of 24hours and 12hours. From deos make sens as there is 
+
+In `r fig$ref("plot2",link=F)` We can se a pattern emerge, we see some intresting spikes in lag 12 and lag 24 lag 36 and so on.Both the ACF and PACF show sem cyclical behavior but the largest spike in lag 24. If we look at the spectrum plot of the series we se two destinct spices with frequency of around 0.4 and 0.08. the inverse of these frequencyc is the periog of 24hours and 12hours. 
+
+### **TASK 2**
+
+Intuitively we know that the data should have seasonality within every 24 hours, every week and also within every year.
+When predicting for such a short time period (1 hour and 6 hours), we conclude that the 24 hour cycle is the most important seasonality cycle to look at, and therefore we change the data into a time series with frequency 24:
+
+```{r Task2_1}
+
+suppressPackageStartupMessages(require(forecast))
+heat_con <- ts(na.omit(HC.c), frequency = 24)  
+
+```
+
+lets examine the forescast for 6 hour ahead
+Let us first try a linear model using tslm()
+
+```{r Task2_2}
+
+fit_lm <- tslm(heat_con ~ trend + season)
+accuracy(fit_lm)
+fcast_lm <- forecast(fit_lm, h=6)
+#summary(fit_lm)
+autoplot(fcast_lm, include = 168)
+
+```
+`r fig$cap("LMforecast", "skrifa um forecast", inline=TRUE)`
+
+
+After taking the first difference of the heat consumption time series, we inspect the ACF and PACF plots
+and estimate that the heat consumption can be described with a ARIMA(3,1,1) process.
+Using arima to predict with ARIMA(3,1,1):
+
+```{r Task2_3}
+
+fit1.arima <- arima(na.omit(HC.c), order=c(3,1,1))
+#summary(fit1.arima)
+accuracy(fit1.arima)
+fcast1 <- forecast(fit1.arima,6)
+autoplot(fcast1, include = 168)
+
+```
+`r fig$cap("ARIMAforecast", "skrifa um arima", inline=TRUE)`
+
+Now we use the auto.arima() function from the forecast package in R. That gives a different model
+than we estimated earlier, or ARIMA(4,1,4).
+
+```{r Task2_4}
+
+# auto.arima(na.omit(HC.c))  
+# Gives ARIMA(4,1,4)
+# Let's now use this input to predict:
+fit2.arima <- arima(na.omit(HC.c), order=c(4,1,4))
+#summary(fit2.arima)
+accuracy(fit2.arima)
+fcast2 <- forecast(fit2.arima,6)
+autoplot(fcast2, include = 168)
+
+```
+`r fig$cap("autoarima(4,1,4)forecast", "skrifa um arima", inline=TRUE)`
+
+lets examine the forescast for 1 hour ahead with the same methods as above
+
 
 
 ### **TASK 3**
