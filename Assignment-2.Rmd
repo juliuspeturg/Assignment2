@@ -297,8 +297,21 @@ autoplot(fcast2, include = 168)
 ```
 `r fig$cap("autoarima(4,1,4)forecast", "6 hour ahead forecast using ARIMA(4,1,4).", inline=TRUE)`
 
-Lets examine the forecast for 1 hour ahead with the same methods as above:
+For the one hour ahead forecast, the confidence level would simply be smaller and the accuracy of the prediction better compared to the 6 hour prediction.  
 
+```{r Task2_5}
+
+# Accuracies of the model:
+accuracy(fcast_lm) # Linear model
+accuracy(fcast1) # ARIMA(3,1,1)
+accuracy(fcast2) # ARIMA(4,1,4)
+
+```
+
+We see that, as expected, the linear model is performing much worse than the ARIMA models (RMSE=537.2 vs. RMSE=43.8). The RMSE of ARIMA(4,1,4), the model order that auto.arima suggested, and ARIMA(3,1,1), the model order that we estimated was very similar (RMSE=42.9 for ARIMA(4,1,4) and RMSE=43.8 for ARIMA(3,1,1)).
+
+Therefore, an ARIMA model would be considered suitable if no other variables are taken into account, such as  
+outside temperature or solar radiation.
 
 
 ### **TASK 3**
